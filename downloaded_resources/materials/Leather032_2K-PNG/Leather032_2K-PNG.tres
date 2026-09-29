@@ -1,0 +1,15 @@
+[gd_resource type="StandardMaterial3D" load_steps=5 format=3 uid="acg_v0ekwx5z"]
+
+[ext_resource type="Texture2D" uid="uid://acg_ldhfbc24" id="Color" path="./Leather032_2K-PNG_Color.png"]
+[ext_resource type="Texture2D" uid="uid://acg_qr7tc864" id="Displacement" path="./Leather032_2K-PNG_Displacement.png"]
+[ext_resource type="Texture2D" uid="uid://acg_y08z1i32" id="Roughness" path="./Leather032_2K-PNG_Roughness.png"]
+[ext_resource type="Texture2D" uid="uid://acg_j91gcitk" id="NormalGL" path="./Leather032_2K-PNG_NormalGL.png"]
+[resource]
+albedo_texture = ExtResource("Color")
+roughness_texture = ExtResource("Roughness")
+roughness_texture_channel = 4
+normal_texture = ExtResource("NormalGL")
+normal_enabled = true
+heightmap_texture = ExtResource("Displacement")
+heightmap_scale = 1.0
+heightmap_enabled = true
