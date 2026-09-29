@@ -104,3 +104,17 @@ Format: **what happened → why → rule**.
 25. **Mean texture colour looked "wrong" (0.32 for a 0.6 pixel)** — it was right: image pixels are
     sRGB-encoded, `diffuse_color` is linear. → *Rule: linearise sampled colours before using them
     as material values.*
+
+26. **AK overlay came out 20 % squashed vertically** — `render.workbench` defaults to 1080x720 and the
+    photo was 1440x720; `wb.py compare` stretched the render. → *Rule: reference-camera renders always
+    pass `res=L.IMAGE_SIZE`.*
+
+27. **Hand-held prop sank through the presentation floor** (origin on the bore, Z < 0 parts). → The
+    cyclorama sat at Z=0. → *Fixed: `presentation.studio` puts the floor at min(0, asset min Z).*
+
+28. **`mesh.box_uv` wraps UVs with `% 1`**, so faces crossing a wrap stretch across the whole texture.
+    → *Rule for game assets: final multi-object `smart_project` atlas (UV_Bake, 0-1) + the same islands
+    scaled to 2 m/UV in UVMap for tiling PBR (see `projects/PROP_AK_Rifle/stage2.py::unwrap`).*
+
+29. **Studying a downloaded model with an incompatible licence**: inspect it read-only for facts
+    (scale, part widths, topology/budget), never import, trace or bake from it; record this in project.md.

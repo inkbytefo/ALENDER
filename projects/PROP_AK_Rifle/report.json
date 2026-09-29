@@ -1,0 +1,145 @@
+{
+  "asset": "PROP_AK_Rifle",
+  "blender": "5.2.1 LTS",
+  "summary": {
+    "result": "PASS",
+    "blockers_failed": 0,
+    "warnings": 0
+  },
+  "metrics": {
+    "tris_high": 18668,
+    "dims": [
+      0.06939609348773956,
+      0.8801780939102173,
+      0.255628764629364
+    ],
+    "objects": 48,
+    "uv": {
+      "area3d_m2": 0.3215,
+      "atlas_coverage": 0.507,
+      "texel_px_per_m_at_4k": 5145.9
+    },
+    "top_tris": [
+      [
+        2648,
+        "MAG_Ribs"
+      ],
+      [
+        2012,
+        "WOOD_Stock"
+      ],
+      [
+        1452,
+        "WOOD_HandguardLower"
+      ],
+      [
+        1452,
+        "RECV_DustCover"
+      ],
+      [
+        1452,
+        "MAG_Body"
+      ],
+      [
+        772,
+        "GRIP_Pistol"
+      ],
+      [
+        724,
+        "WOOD_HandguardUpper"
+      ],
+      [
+        580,
+        "FASTENER_Rivets_R"
+      ],
+      [
+        580,
+        "FASTENER_Rivets_L"
+      ],
+      [
+        444,
+        "WOOD_ButtPlate"
+      ]
+    ],
+    "game_glb": {
+      "body_tris": 12724,
+      "moving_parts": [
+        "MAG_Body",
+        "MAG_Floorplate",
+        "MAG_Ribs",
+        "MAG_LipPlates",
+        "MAG_LugFront",
+        "MAG_LugRear",
+        "CTRL_Trigger_Blade",
+        "CTRL_Safety_Lever",
+        "CTRL_Safety_Pivot",
+        "CTRL_MagCatch",
+        "CTRL_Charging_Handle",
+        "CTRL_Charging_Carrier"
+      ]
+    }
+  },
+  "checks": [
+    {
+      "id": "U01",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "length 0.8802 m (target 0.880)"
+    },
+    {
+      "id": "U02",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "all scales 1.0"
+    },
+    {
+      "id": "U06",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "all meshes have UVs (UVMap + UV_Bake)"
+    },
+    {
+      "id": "U07",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "no empty material slots"
+    },
+    {
+      "id": "U08",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "18668 tris (max 60000)"
+    },
+    {
+      "id": "U09",
+      "severity": "WARN",
+      "result": "PASS",
+      "detail": "18668 tris (target 12000-45000)"
+    },
+    {
+      "id": "U10",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "4 materials"
+    },
+    {
+      "id": "X01",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "0 critical intersections"
+    },
+    {
+      "id": "P01",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "moving parts parented, pivots set"
+    },
+    {
+      "id": "U15",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "exported 49 objs / reimported 49; materials 4/4"
+    }
+  ],
+  "licence": "own procedural build; downloaded AK47.blend studied only, nothing reused"
+}

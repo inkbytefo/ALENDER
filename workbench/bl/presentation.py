@@ -148,12 +148,12 @@ def cyclorama(center, L, floor_rgb, floor_rough, wall_rgb, segs=96):
              for i in range(1, 11)]
     prof += [(R0 + rc, rc + (Hw - rc) * t) for t in (0.33, 0.66, 1.0)]
     bm = bmesh.new()
-    cx, cy = center.x, center.y
-    center_v = bm.verts.new((cx, cy, -0.0005))
+    cx, cy, cz = center.x, center.y, center.z       # cz = floor height (asset's lowest point)
+    center_v = bm.verts.new((cx, cy, cz - 0.0005))
     rings = []
     for (r, z) in prof[1:]:
         rings.append([bm.verts.new((cx + r * math.cos(2 * math.pi * k / segs),
-                                    cy + r * math.sin(2 * math.pi * k / segs), z - 0.0005))
+                                    cy + r * math.sin(2 * math.pi * k / segs), cz + z - 0.0005))
                       for k in range(segs)])
     for k in range(segs):
         bm.faces.new((center_v, rings[0][k], rings[0][(k + 1) % segs]))
@@ -165,7 +165,7 @@ def cyclorama(center, L, floor_rgb, floor_rough, wall_rgb, segs=96):
         f.smooth = True
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     for f in bm.faces:                      # normals must point UP / inwards (towards the asset)
-        if (f.calc_center_median() - Vector((cx, cy, Hw))).dot(f.normal) > 0:
+        if (f.calc_center_median() - Vector((cx, cy, cz + Hw))).dot(f.normal) > 0:
             f.normal_flip()
     me = bpy.data.meshes.new("PRES_Cyclorama_Mesh")
     bm.to_mesh(me)
@@ -263,7 +263,7 @@ def studio(objs, style="studio_dark", light_scale=1.0, hide_review_lights=True):
     size = mx - mn
     L = max(size.x, size.y, size.z)
     tgt = Vector((ctr.x, ctr.y, mn.z + 0.45 * size.z))
-    cyc = cyclorama(Vector((ctr.x, ctr.y, 0.0)), L, s["floor"], s["floor_rough"], s["wall"])
+    cyc = cyclorama(Vector((ctr.x, ctr.y, min(0.0, mn.z))), L, s["floor"], s["floor_rough"], s["wall"])
     lights = {}
     for n, (az, el, dk, sxk, syk, irr, rgb, spread) in LIGHTS.items():
         lights[n] = light(n, tgt, az, el, dk * L, sxk * L, syk * L, irr * s["power"] * light_scale, rgb, spread)
