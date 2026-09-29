@@ -67,6 +67,9 @@ refines while proportions stay locked to landmarks. Name LOW objects via `nm(lod
   RGBA for overlays. `render.review_set(cams, folder, tag)` renders the whole rig.
 - `render.studio_lights()` + `render.beauty(cam, path, engine="BLENDER_EEVEE"|"CYCLES")`.
 - Video: `anim.turntable()` + `render.animation(cam, "x.mp4", 1, 240)` (docs/07).
+- **Presentation studio** (docs/10): `presentation.studio(objs, style)` (360° cyclorama, 6-light
+  rig, AgX) + `hero_cameras(objs)` (auto-framed) + `render_stills` / `turntable_video`;
+  CLI `python wb.py present <ASSET>`.
 
 ## Host tools (normal python)
 `python wb.py grid|crop|compare|sheet` — see `wb.py -h`.

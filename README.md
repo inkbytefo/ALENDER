@@ -15,6 +15,7 @@ python wb.py doctor                                  # Blender + Pillow kontrol�
 python wb.py test                                    # kütüphane testi (render + video + glb)
 python wb.py build VEH_Gemini_Motorcycle             # örnek projeyi baştan üret
 python wb.py new VEH_Benim_Arabam --category vehicle # yeni proje iskeleti
+python wb.py present VEH_Gemini_Motorcycle            # profesyonel stüdyo render'ları (docs/10)
 ```
 
 Yeni bir model için:
@@ -34,6 +35,13 @@ Yeni bir model için:
 | `docs/` | Süreç, standartlar, teknikler, çıkarılan dersler, örnek vaka |
 | `docs/prompts/` | Kullanıcı için master prompt'lar (cheatsheet üretimi, modelleme başlatma, kategori paketleri) |
 | `AGENTS.md` / `CLAUDE.md` | AI agent'lar için kurallar. `.claude/skills/blender-workbench` = Claude skill'i |
+
+## Sunum stüdyosu
+`python wb.py present <ASSET>` her modeli aynı profesyonel sahnede gösterir: 360° kesintisiz
+cyclorama (ufuk çizgisi yok), modele göre ölçeklenen 6 ışık (key softbox, üst ışık bandı, iki rim
+şerit, fill, kicker), AgX renk yönetimi ve modeli otomatik kadrajlayan 6 kahraman kamera.
+Stiller: `studio_dark`, `studio_light`, `neutral_grey`, `clay` (şekil incelemesi). Cycles GPU
+(final) veya EEVEE (hızlı / turntable video). Ayrıntı: `docs/10_PRESENTATION.md`.
 
 ## Örnek: VEH_Gemini_Motorcycle
 Tek bir yan fotoğraftan yeniden kurulan özel Honda motosiklet. Stage 1: 9.8k üçgen, Stage 2: 65k

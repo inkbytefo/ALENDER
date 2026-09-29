@@ -82,3 +82,8 @@ Format: **what happened → why → rule**.
 20. **Colour segmentation of the body edge failed on the shaded side** (dark-red flank, reflections on
     the wet floor). → *Rule: measure the lit edge on gamma-brightened crops, verify the centre line at
     3+ stations (nose, cockpit, tail, wheel pairs) and mirror.*
+
+21. **First studio render was blown out** (white floor, pink paint) and the rim softboxes showed up
+    as white cards in the rear shot. → Area-light power must scale with distance² and lights must be
+    `visible_camera = False`. → *Rule: present with `workbench.bl.presentation` (tuned, size-scaled);
+    check one preview sheet (`--scale 50 --samples 48`) before paying for finals.*

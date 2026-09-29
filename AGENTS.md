@@ -24,6 +24,7 @@ python wb.py run <script.py>             # any bpy script, workbench importable
 python wb.py grid|crop <img> ...         # reference analysis
 python wb.py compare <ASSET> <render.png>  # overlay render on the reference photo
 python wb.py sheet <out.png> <imgs...>   # contact sheet
+python wb.py present <ASSET> [--style clay|studio_dark|studio_light] [--turntable 8]  # studio renders (docs/10)
 python wb.py test                        # smoke test after changing workbench/
 ```
 
@@ -41,7 +42,8 @@ python wb.py test                        # smoke test after changing workbench/
    Builds are deterministic and idempotent.
 7. Standards (docs/02): +Z up, −Y forward, +X = object's left, metres, scale 1, `_LOW` suffix,
    `UNCERTAIN_` prefix for guessed parts, ≤ 8 materials, milestones never overwritten.
-8. Done = report PASS + renders inspected + GLB round trip + clean rebuild reproduces numbers.
+8. Done = report PASS + renders inspected + GLB round trip + clean rebuild reproduces numbers
+   + presentation sheet (`wb.py present`, clay + studio_dark) inspected and shown to the user.
    Report honestly: failures, uncertain parts, limitations.
 9. When you learn something non-obvious, append it to `docs/09_LESSONS_LEARNED.md`; when a helper
    proves reusable, move it into `workbench/` (+ smoke test assertion + docs/04 table).

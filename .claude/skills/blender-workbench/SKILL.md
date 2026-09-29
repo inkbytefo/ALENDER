@@ -39,6 +39,9 @@ Create a todo per numbered step for non-trivial assets.
 - `validate.stats` (check `top_tris`), `standard_checks` + category checks + intersections,
   renders (ref cam clay/material, orthos, perspectives, wire), `export.glb` + `roundtrip`,
   `write_report`. View the final overlay + review sheet yourself.
+- Presentation (docs/10): `python wb.py present <A> --style clay --samples 96` → view the sheet
+  (shape review); then `python wb.py present <A>` (studio_dark finals) → view; optional
+  `--engine EEVEE --shots none --turntable 8`.
 - Clean rebuild `python wb.py build <A>` → same numbers. Remove stale outputs.
 - Final message: result, key numbers, what changed, uncertain parts, limitations, file paths.
 - New lesson? Append to `docs/09_LESSONS_LEARNED.md`. Reusable helper? Promote to `workbench/`,

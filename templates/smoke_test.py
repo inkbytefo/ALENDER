@@ -97,6 +97,23 @@ cam, pivot = anim.turntable((1, 1, 0.8), 9.0, 3.0, (1, 24))
 render.animation(cam, os.path.join(OUT, "turntable.mp4"), 1, 24, (480, 270))
 check("video", os.path.isfile(os.path.join(OUT, "turntable.mp4")) and os.path.getsize(os.path.join(OUT, "turntable.mp4")) > 1000)
 
+# presentation studio (cyclorama + light rig + auto-framed camera + Cycles still)
+from workbench.bl import presentation as pres
+from bpy_extras.object_utils import world_to_camera_view
+pobjs = [bpy.data.objects[n] for n in ("PROP_Box", "PROP_Cyl", "PROP_Wheel")]
+stg = pres.studio(pobjs, "studio_dark")
+check("pres_stage", bpy.data.objects.get("PRES_Cyclorama") is not None and len(stg["lights"]) == len(pres.LIGHTS))
+pc = pres.hero_cameras(pobjs, {"HERO": pres.SHOTS["HERO_FRONT_34"][:3] + (0.07, (320, 180))})["HERO"]
+bpy.context.scene.render.resolution_x, bpy.context.scene.render.resolution_y = 320, 180
+pp = [world_to_camera_view(bpy.context.scene, pc, p) for p in pres.asset_points(pobjs)]
+check("pres_framing", all(0.0 <= p.x <= 1.0 and 0.0 <= p.y <= 1.0 for p in pp)
+      and max(max(p.x for p in pp) - min(p.x for p in pp), max(p.y for p in pp) - min(p.y for p in pp)) > 0.8,
+      "asset fills the frame inside margins")
+pres.render_stills({"hero": pc}, OUT, "pres_", "CYCLES", 8)
+check("pres_render", os.path.isfile(os.path.join(OUT, "pres_hero.png")))
+for o in [o for o in bpy.data.objects if o.name.startswith("PRES_")]:
+    bpy.data.objects.remove(o, do_unlink=True)
+
 # export + roundtrip
 scene.save(os.path.join(OUT, "smoke.blend"))
 root = scene.root(A)

@@ -29,6 +29,10 @@ render.animation(cam, paths.out(A, "video", "turntable.mp4"), 1, 240, (1920, 108
 - Review: render a contact sheet of every Nth frame (render stills at those frames + `wb.py sheet`)
   and check first/last frame equality for loops.
 
+## Presentation turntable
+`python wb.py present <ASSET> --engine EEVEE --shots none --turntable 8` — orbit inside the lit
+studio (docs/10), reflections travel across the surfaces; seamless loop.
+
 ## Typical deliverables
 - product turntable (8 s, 240 frames), wheel spin loop, door/hood open clips, walk/idle cycles,
   camera fly-through for architecture (keyframed camera path with `anim.move` + `cameras.look_at`

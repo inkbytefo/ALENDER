@@ -16,6 +16,7 @@ and videos. Everything is code: `projects/<ASSET>/*.py` is the source, `.blend/.
 | 6 | `02_STANDARDS.md` | axes, units, naming, collections, budgets, materials |
 | 7 | `05_VALIDATION.md` | overlays, intersection pairs, checks, report.json |
 | as needed | `07_ANIMATION_AND_VIDEO.md`, `08_BLENDER_API_NOTES.md` | anim/video; Blender 5.x gotchas |
+| end of job | `10_PRESENTATION.md` | studio stage (cyclorama + light rig + hero cams): clay shape review, final renders, turntable |
 | example | `case_studies/VEH_Gemini_Motorcycle.md` | a complete worked project with real numbers |
 
 ## Prompts for the user (and for image / coding AIs)

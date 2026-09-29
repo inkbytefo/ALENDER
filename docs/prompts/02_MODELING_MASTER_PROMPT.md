@@ -41,7 +41,8 @@ PROCESS (details in docs):
    fins, holes, lines). Proportions must not drift.
 4. Correction loop after every major phase: render reference cam + orthos, measure, fix the largest
    mismatch(es), re-render. Numbers, not adjectives.
-5. Final: validation checks + report.json, renders (reference cam clay/material, 5 orthos,
+5. Final: validation checks + report.json, presentation renders (`python wb.py present <ASSET>`,
+   clay + studio_dark, docs/10), renders (reference cam clay/material, 5 orthos,
    2 perspectives, wire), GLB export with round-trip check, clean rebuild gives identical numbers.
 
 BUDGET: Stage 1 < [15k] tris, Stage 2 [40k–100k] tris evaluated, ≤ [8] materials.

@@ -11,6 +11,8 @@ wb.py - Blender Workbench command line (run from the repository root with normal
   python wb.py crop <img> x0 y0 x1 y1 [--scale 4] [--out path]   zoomed gridded crop
   python wb.py compare <ASSET> <render.png> [--ref path]          overlay render on reference photo
   python wb.py sheet <out.png> <img> [<img> ...] [--cols 2]       contact sheet
+  python wb.py present <ASSET> [--style S] [--engine CYCLES|EEVEE] [--turntable [SEC]] [--scale 50]
+                                               studio presentation renders (docs/10_PRESENTATION.md)
   python wb.py test                            smoke test of the whole library (renders + video + glb)
 
 Blender is found via $BLENDER_EXECUTABLE, standard install folders, or PATH.
@@ -102,6 +104,7 @@ def main():
     p = sp.add_parser("build"); p.add_argument("asset")
     p = sp.add_parser("run"); p.add_argument("script"); p.add_argument("rest", nargs=argparse.REMAINDER)
     sp.add_parser("list"); sp.add_parser("doctor"); sp.add_parser("test")
+    p = sp.add_parser("present"); p.add_argument("asset"); p.add_argument("rest", nargs=argparse.REMAINDER)
     p = sp.add_parser("grid"); p.add_argument("img"); p.add_argument("--step", type=int, default=20)
     p = sp.add_parser("crop"); p.add_argument("img"); p.add_argument("box", nargs=4, type=int)
     p.add_argument("--scale", type=int, default=4); p.add_argument("--out")
@@ -121,6 +124,16 @@ def main():
         cmd_list(a)
     elif a.cmd == "doctor":
         cmd_doctor(a)
+    elif a.cmd == "present":
+        rest = [x for x in a.rest if x != "--"]
+        rc = run_script(os.path.join(ROOT, "scripts", "present.py"), [a.asset] + rest)
+        style = rest[rest.index("--style") + 1] if "--style" in rest else "studio_dark"
+        lst = os.path.join(ROOT, "output", a.asset, "presentation", f"{style}_files.txt")
+        if rc == 0 and os.path.isfile(lst):
+            from workbench.host import imgtools as T
+            imgs = [l.strip() for l in open(lst) if l.strip()]
+            print("[wb] sheet:", T.sheet(imgs, os.path.join(os.path.dirname(lst), f"{style}_sheet.png"), 2, 1920))
+        sys.exit(rc)
     elif a.cmd == "test":
         sys.exit(run_script(os.path.join(ROOT, "templates", "smoke_test.py")))
     else:

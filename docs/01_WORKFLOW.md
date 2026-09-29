@@ -64,7 +64,9 @@ Stop after 6 iterations on the same blocker → analyse the layer (landmark? bui
 ## 6. Final gate & delivery
 `validate.standard_checks` + category checks + intersections + GLB round trip (U15) →
 `report.json`. Renders: reference cam (clay+material), 5 orthos, 2 perspectives, wire.
-Deliver: milestones in `output/<ASSET>/blend/`, `<ASSET>.glb`, renders, report.
+Presentation (docs/10): `python wb.py present <ASSET> --style clay` (shape review — look at the
+sheet) then `python wb.py present <ASSET>` (finals, studio_dark).
+Deliver: milestones in `output/<ASSET>/blend/`, `<ASSET>.glb`, renders, presentation sheet, report.
 Report honestly: result, numbers, uncertain parts, known limitations.
 
 ## Phase report format (after each major phase, keep it short)
