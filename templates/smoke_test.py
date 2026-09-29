@@ -97,6 +97,32 @@ cam, pivot = anim.turntable((1, 1, 0.8), 9.0, 3.0, (1, 24))
 render.animation(cam, os.path.join(OUT, "turntable.mp4"), 1, 24, (480, 270))
 check("video", os.path.isfile(os.path.join(OUT, "turntable.mp4")) and os.path.getsize(os.path.join(OUT, "turntable.mp4")) > 1000)
 
+# PBR: synthetic ambientCG-style texture set -> scan -> node tree (no downloaded files needed)
+from workbench import pbrlib
+from workbench.bl import pbr, assets
+tdir = os.path.join(OUT, "pbr_lib", "Test001_1K-PNG")
+os.makedirs(tdir, exist_ok=True)
+for suffix, rgba in (("Color", (0.6, 0.2, 0.1, 1)), ("Roughness", (0.4, 0.4, 0.4, 1)),
+                     ("NormalGL", (0.5, 0.5, 1.0, 1)), ("Metalness", (0.0, 0.0, 0.0, 1))):
+    im = bpy.data.images.new("tmp_" + suffix, 8, 8)
+    im.pixels[:] = list(rgba) * 64
+    im.filepath_raw = os.path.join(tdir, f"Test001_1K-PNG_{suffix}.png")
+    im.file_format = "PNG"
+    im.save()
+tset = pbrlib.find("Test001", os.path.dirname(tdir))
+check("pbr_scan", set(tset["maps"]) >= {"base_color", "roughness", "normal_gl", "metallic"}, sorted(tset["maps"]))
+pm = materials.ensure({"MAT_PBR_TEST": dict(pbr=tset, tile_m=0.5)})["MAT_PBR_TEST"]
+bsdf = next(n for n in pm.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+check("pbr_material", bsdf.inputs["Base Color"].is_linked and bsdf.inputs["Normal"].is_linked
+      and bsdf.inputs["Roughness"].is_linked and abs(pm.diffuse_color[0] - 0.318) < 0.03,   # sRGB 0.6 -> linear
+      f"diffuse {tuple(round(c, 2) for c in pm.diffuse_color[:3])}")
+pbr.assign(bpy.data.objects["PROP_Box"], pm)
+# assets: join + inspect
+j = assets.join([bpy.data.objects["PROP_Cyl"], bpy.data.objects["PROP_Pipe"]], "PROP_Joined", C)
+rep = assets.inspect([j])
+check("assets_join", rep["meshes"] == 1 and rep["tris"] > 100, f"{rep['tris']} tris")
+bpy.data.objects.remove(j, do_unlink=True)
+
 # presentation studio (cyclorama + light rig + auto-framed camera + Cycles still)
 from workbench.bl import presentation as pres
 from bpy_extras.object_utils import world_to_camera_view

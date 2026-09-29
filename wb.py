@@ -13,6 +13,8 @@ wb.py - Blender Workbench command line (run from the repository root with normal
   python wb.py sheet <out.png> <img> [<img> ...] [--cols 2]       contact sheet
   python wb.py present <ASSET> [--style S] [--engine CYCLES|EEVEE] [--turntable [SEC]] [--scale 50]
                                                studio presentation renders (docs/10_PRESENTATION.md)
+  python wb.py inspect <model> [--render]      import + analyse a third-party model (docs/11)
+  python wb.py pbr [list|preview] [--filter X] PBR texture library index / material-ball sheet (docs/11)
   python wb.py test                            smoke test of the whole library (renders + video + glb)
 
 Blender is found via $BLENDER_EXECUTABLE, standard install folders, or PATH.
@@ -105,6 +107,9 @@ def main():
     p = sp.add_parser("run"); p.add_argument("script"); p.add_argument("rest", nargs=argparse.REMAINDER)
     sp.add_parser("list"); sp.add_parser("doctor"); sp.add_parser("test")
     p = sp.add_parser("present"); p.add_argument("asset"); p.add_argument("rest", nargs=argparse.REMAINDER)
+    p = sp.add_parser("inspect"); p.add_argument("model"); p.add_argument("rest", nargs=argparse.REMAINDER)
+    p = sp.add_parser("pbr"); p.add_argument("action", nargs="?", default="list", choices=("list", "preview"))
+    p.add_argument("rest", nargs=argparse.REMAINDER)
     p = sp.add_parser("grid"); p.add_argument("img"); p.add_argument("--step", type=int, default=20)
     p = sp.add_parser("crop"); p.add_argument("img"); p.add_argument("box", nargs=4, type=int)
     p.add_argument("--scale", type=int, default=4); p.add_argument("--out")
@@ -133,6 +138,26 @@ def main():
             from workbench.host import imgtools as T
             imgs = [l.strip() for l in open(lst) if l.strip()]
             print("[wb] sheet:", T.sheet(imgs, os.path.join(os.path.dirname(lst), f"{style}_sheet.png"), 2, 1920))
+        sys.exit(rc)
+    elif a.cmd == "inspect":
+        rest = [x for x in a.rest if x != "--"]
+        rc = run_script(os.path.join(ROOT, "scripts", "inspect_asset.py"), [os.path.abspath(a.model)] + rest)
+        lst = os.path.join(ROOT, "output", "_inspect", os.path.splitext(os.path.basename(a.model))[0], "files.txt")
+        if rc == 0 and "--render" in rest and os.path.isfile(lst):
+            from workbench.host import imgtools as T
+            imgs = [l.strip() for l in open(lst) if l.strip()]
+            print("[wb] sheet:", T.sheet(imgs, os.path.join(os.path.dirname(lst), "sheet.png"), 2, 1920))
+        sys.exit(rc)
+    elif a.cmd == "pbr":
+        rest = [x for x in a.rest if x != "--"]
+        if a.action == "list":
+            from workbench import pbrlib
+            flt = rest[rest.index("--filter") + 1] if "--filter" in rest else ""
+            for s in pbrlib.scan(pbrlib.library_root()):
+                if flt.lower() in s["name"].lower():
+                    print(f"  {s['name']:28} {s['category']:10} {s['resolution']:4} maps: {', '.join(sorted(s['maps']))}")
+            sys.exit(0)
+        rc = run_script(os.path.join(ROOT, "scripts", "pbr_preview.py"), rest)
         sys.exit(rc)
     elif a.cmd == "test":
         sys.exit(run_script(os.path.join(ROOT, "templates", "smoke_test.py")))

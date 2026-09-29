@@ -1,7 +1,9 @@
 """Principled materials from compact palettes. glTF-safe (no procedural nodes).
 
 A palette is {NAME: (rgb, metallic, roughness)} or {NAME: dict(rgb=..., metallic=..., roughness=...,
-alpha=..., emission=(r,g,b), emission_strength=...)}. Keep <= 8 per vehicle, <= 4 per prop.
+alpha=..., emission=(r,g,b), emission_strength=...)} or a PBR texture set
+{NAME: dict(pbr="Leather009", tile_m=0.4, uv_m=2.0, tint=None, ...)} (workbench.bl.pbr, docs/11).
+Keep <= 8 per vehicle, <= 4 per prop.
 """
 import bpy
 
@@ -42,6 +44,11 @@ def ensure(palette):
     """Create/update every material of the palette. Returns {name: Material}."""
     out = {}
     for name, spec in palette.items():
+        if isinstance(spec, dict) and "pbr" in spec:
+            from workbench.bl import pbr
+            kw = {k: v for k, v in spec.items() if k != "pbr"}
+            out[name] = pbr.material(name, spec["pbr"], **kw)
+            continue
         s = _norm(PRESETS[spec] if isinstance(spec, str) else spec)
         m = bpy.data.materials.get(name) or bpy.data.materials.new(name)
         m.use_nodes = True                       # deprecated in 5.x (warning only), still needed

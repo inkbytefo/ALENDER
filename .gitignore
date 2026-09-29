@@ -7,5 +7,9 @@ output/
 __pycache__/
 *.pyc
 
+# third-party models (Fab etc.): licences do not allow redistribution -> never commit them.
+# downloaded_resources/materials (ambientCG, CC0) may be committed.
+downloaded_resources/models/
+
 # local tool settings
 .claude/settings.local.json

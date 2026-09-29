@@ -74,6 +74,14 @@ refines while proportions stay locked to landmarks. Name LOW objects via `nm(lod
 ## Host tools (normal python)
 `python wb.py grid|crop|compare|sheet` — see `wb.py -h`.
 
+## PBR materials & imported models (docs/11)
+- `pbrlib.scan()/find(name)` — texture-set library (`downloaded_resources/materials`, `library/materials`,
+  `$WB_PBR_LIBRARY`); `wb.py pbr list|preview` (labelled material-ball sheet).
+- `pbr.material(name, set, tile_m, uv_m=2.0)` or palette entry `dict(pbr=..., tile_m=...)` in
+  `materials.ensure`; workbench meshes: `uv_m=2.0`.
+- `assets.import_model / apply_transforms / transform / fit_to / join / split / decimate(cad=True) /
+  inspect`; `wb.py inspect <file> [--render]`.
+
 ## Extending the library
 Add a builder only after it worked in a project; keep it context-free (bmesh/bpy.data), end in
 `mesh.finish()`, document it in the table above, add one assertion to `templates/smoke_test.py`,

@@ -46,7 +46,8 @@ Subsurf: viewport/export level 1, render level 2 — keeps GLB inside budget.
 
 ## Materials
 - Principled BSDF only, values not procedural nodes (glTF-safe). Palette in `parts.PALETTE`,
-  presets in `workbench.bl.materials.PRESETS`.
+  presets in `workbench.bl.materials.PRESETS`, or image-based PBR sets via
+  `dict(pbr="Leather037", tile_m=0.35)` (docs/11; UV projection, no tint/bump for game assets).
 - ≤ 8 per vehicle, ≤ 6 per character, ≤ 4 per prop. No empty slots, no unused materials.
 - Metallic binary: metals ≥ 0.7, dielectrics 0. Base colour 0.04–0.9 (no pure black/white).
 - Paint splits that are visible in the reference are real geometry/material boundaries

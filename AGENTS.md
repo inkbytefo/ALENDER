@@ -25,8 +25,12 @@ python wb.py grid|crop <img> ...         # reference analysis
 python wb.py compare <ASSET> <render.png>  # overlay render on the reference photo
 python wb.py sheet <out.png> <imgs...>   # contact sheet
 python wb.py present <ASSET> [--style clay|studio_dark|studio_light] [--turntable 8]  # studio renders (docs/10)
+python wb.py pbr list|preview [--filter Metal]   # PBR texture library + material-ball sheet (docs/11)
+python wb.py inspect <model file> [--render]     # analyse a downloaded FBX/glTF/blend (docs/11)
 python wb.py test                        # smoke test after changing workbench/
 ```
+
+Downloaded models / PBR textures live in `downloaded_resources/` (`models/` git-ignored — licences!; CC0 `materials/` may be committed).
 
 ## Non-negotiable rules
 1. **Reconstruct, don't redesign.** Photo > extra photos > cheatsheet > mechanical logic > guess.

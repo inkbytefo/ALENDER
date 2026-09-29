@@ -87,3 +87,20 @@ Format: **what happened → why → rule**.
     as white cards in the rear shot. → Area-light power must scale with distance² and lights must be
     `visible_camera = False`. → *Rule: present with `workbench.bl.presentation` (tuned, size-scaled);
     check one preview sheet (`--scale 50 --samples 48`) before paying for finals.*
+
+22. **PBR preview balls showed flat colour and diagonal "staircase" seams** — the bmesh UV sphere
+    (`create_uvsphere(calc_uvs=True)`) has broken seam UVs, and non-integer repeats break at the seam.
+    → *Rule: preview/test meshes need clean UVs and an integer number of texture repeats.*
+
+23. **Imported FBX parts landed at wrong places**: un-parenting a parent changes its children's world
+    matrix, and `bound_box` stays stale until the depsgraph updates (also inside hidden collections).
+    → *Rule: capture all world matrices before un-parenting, `view_layer.update()` after baking,
+    process imports in a visible collection (`workbench.bl.assets` does this).*
+
+24. **CAD-style FBX (2.5 M tris) would not decimate**: split vertices + n-gons + open boundaries stall
+    collapse and extreme ratios throw spikes. → *Rule: `assets.decimate(ob, n, cad=True)` (weld 2e-3,
+    dissolve degenerate, multi-pass); budget honestly — some downloads are render-only references.*
+
+25. **Mean texture colour looked "wrong" (0.32 for a 0.6 pixel)** — it was right: image pixels are
+    sRGB-encoded, `diffuse_color` is linear. → *Rule: linearise sampled colours before using them
+    as material values.*

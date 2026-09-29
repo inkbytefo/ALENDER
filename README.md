@@ -36,6 +36,14 @@ Yeni bir model için:
 | `docs/prompts/` | Kullanıcı için master prompt'lar (cheatsheet üretimi, modelleme başlatma, kategori paketleri) |
 | `AGENTS.md` / `CLAUDE.md` | AI agent'lar için kurallar. `.claude/skills/blender-workbench` = Claude skill'i |
 
+## PBR malzemeler ve hazır modeller
+`downloaded_resources/materials` içine konan PBR doku setleri (ambientCG, Poly Haven, Substance/Fab
+dışa aktarımları) otomatik tanınır: `python wb.py pbr list`, `python wb.py pbr preview` (etiketli
+malzeme küreleri). Projede paletten kullanılır: `"MAT_LEATHER": dict(pbr="Leather037", tile_m=0.35)`.
+İndirilen modeller: `python wb.py inspect <dosya> --render` ile analiz, `workbench.bl.assets` ile
+içe aktarma / oturtma / birleştirme / seyreltme. `downloaded_resources/models/` lisans nedeniyle
+git'e girmez (CC0 malzemeler girebilir). Ayrıntı: `docs/11_ASSETS_AND_PBR.md`.
+
 ## Sunum stüdyosu
 `python wb.py present <ASSET>` her modeli aynı profesyonel sahnede gösterir: 360° kesintisiz
 cyclorama (ufuk çizgisi yok), modele göre ölçeklenen 6 ışık (key softbox, üst ışık bandı, iki rim

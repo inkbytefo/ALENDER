@@ -90,7 +90,7 @@ def asset_points(objs, max_pts=6000):
     dg = bpy.context.evaluated_depsgraph_get()
     pts = []
     for o in objs:
-        if o.type != "MESH":
+        if o.type not in ("MESH", "FONT", "CURVE"):
             continue
         eo = o.evaluated_get(dg)
         me = eo.to_mesh()

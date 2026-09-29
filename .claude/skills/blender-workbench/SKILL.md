@@ -16,6 +16,10 @@ Create a todo per numbered step for non-trivial assets.
 ## 1. Intake
 - `python wb.py new <ASSET> --category <c>`; photos → `projects/<A>/ref/REAL_REFERENCE.png`
   (+ `MODELING_CHEATSHEET.png`), convert webp→png. Fill `project.md`.
+- Materials (docs/11): `python wb.py pbr preview` → view the sheet → PBR sets in the palette as
+  `dict(pbr="<Set>", tile_m=...)`; flat Principled values stay fine for paint/rubber.
+- Downloaded model to reuse? `python wb.py inspect <file> --render` first; fit it to landmark
+  hardpoints with `workbench.bl.assets` (never let it change proportions); note licence in project.md.
 
 ## 2. Reference analysis → `landmarks.py` (docs/03)
 - `wb.py grid` + `wb.py crop` every region at 3–4×; **view the crops** and read pixel edges.
