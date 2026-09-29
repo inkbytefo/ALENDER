@@ -1,0 +1,151 @@
+{
+  "asset": "VEH_TT92_Racing_Car",
+  "blender": "5.2.1 LTS",
+  "summary": {
+    "result": "PASS",
+    "blockers_failed": 0,
+    "warnings": 0
+  },
+  "metrics": {
+    "tris_high": 74014,
+    "tris_low": 10934,
+    "materials": 8,
+    "bbox_m": [
+      1.802,
+      3.484,
+      0.836
+    ],
+    "objects_high": 118,
+    "wheelbase_m": 2.128,
+    "scale_px_per_m": 312.5,
+    "track_front_m": 1.32,
+    "track_rear_m": 1.432,
+    "tyre_dia_m": [
+      0.592,
+      0.72
+    ]
+  },
+  "checks": [
+    {
+      "id": "U02",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "all scales 1.0"
+    },
+    {
+      "id": "U03",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "lowest z = 0.0000"
+    },
+    {
+      "id": "U06",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "all meshes have UVs"
+    },
+    {
+      "id": "U07",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "no empty material slots"
+    },
+    {
+      "id": "U08",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "74014 tris (max 120000)"
+    },
+    {
+      "id": "U09",
+      "severity": "WARN",
+      "result": "PASS",
+      "detail": "74014 tris (target (40000, 100000))"
+    },
+    {
+      "id": "U10",
+      "severity": "WARN",
+      "result": "PASS",
+      "detail": "8 materials"
+    },
+    {
+      "id": "V01",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "wheelbase 2.128 m (665 px / 312.5)"
+    },
+    {
+      "id": "V02",
+      "severity": "WARN",
+      "result": "PASS",
+      "detail": "overall width 1.802 m (photo 570 px = 1.82 m)"
+    },
+    {
+      "id": "V03",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "critical intersections: []"
+    },
+    {
+      "id": "V04",
+      "severity": "WARN",
+      "result": "PASS",
+      "detail": "body symmetry error 0.0 mm"
+    },
+    {
+      "id": "U15",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "exported 119 objs / reimported 119; materials 8/8"
+    }
+  ],
+  "category": "vehicle",
+  "style": "realistic_game",
+  "stage1": {
+    "objects": 69,
+    "tris": 10934,
+    "dims": [
+      1.802,
+      3.484,
+      0.836
+    ],
+    "bbox_min": [
+      -0.901,
+      -1.53,
+      0.0
+    ],
+    "intersections": []
+  },
+  "assumptions": [
+    "Primary photo is a TOP view: front = image top (steering wheel ahead of seat, louvres and exhaust headers at the blunt end). The AI cheatsheet shows the car reversed; photo wins.",
+    "Model -Y forward, +Z up, +X = car left; origin midway between the axles on the ground.",
+    "Scale 312.5 px/m from rear tyre 225 px = 0.72 m; rear track 1.43 m vs cheatsheet 1.46 m.",
+    "No side photo: all heights (body profile, fin, exhaust, suspension) are estimates from the cheatsheet numbers (0.78 m body, 0.12 m clearance) and front-engined GP car logic.",
+    "Body built symmetric about u = 345 px; photo centre line drifts 342-347 px (perspective).",
+    "Body HIGH: loft -> subsurf L1 baked -> cockpit boolean -> weighted normals (subsurf before the boolean, not live, to keep the cockpit cut crisp)."
+  ],
+  "uncertain": [
+    "UNCERTAIN_AERO_Canard_L",
+    "UNCERTAIN_AERO_Canard_R",
+    "UNCERTAIN_AERO_NoseTab_L",
+    "UNCERTAIN_AERO_NoseTab_R",
+    "UNCERTAIN_SUSP_Front_Damper_R",
+    "UNCERTAIN_SUSP_Front_Spindle_R",
+    "UNCERTAIN_SUSP_Front_Upright_R",
+    "UNCERTAIN_SUSP_Front_WishboneLower_R",
+    "UNCERTAIN_SUSP_Front_WishboneUpper_R",
+    "all heights (no side photo)",
+    "BODY_SideLouvrePanel_L height",
+    "AERO_SideFin_* height/dihedral",
+    "EXHAUST_* height",
+    "tyre widths"
+  ],
+  "waivers": [
+    "Rule 5 organic lofts subsurf live: BODY_Shell subsurf is baked before the cockpit boolean."
+  ],
+  "outputs": {
+    "blend": "output/VEH_TT92_Racing_Car/blend/VEH_TT92_Racing_Car.blend",
+    "glb": "output/VEH_TT92_Racing_Car/glb/VEH_TT92_Racing_Car.glb",
+    "renders": "output/VEH_TT92_Racing_Car/renders/"
+  }
+}

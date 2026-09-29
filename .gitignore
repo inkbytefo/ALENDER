@@ -1,0 +1,11 @@
+# generated outputs (rebuild with: python wb.py build <ASSET>)
+output/
+*.blend
+*.blend1
+
+# python
+__pycache__/
+*.pyc
+
+# local tool settings
+.claude/settings.local.json

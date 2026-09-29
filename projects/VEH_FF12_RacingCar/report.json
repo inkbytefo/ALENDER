@@ -1,0 +1,126 @@
+{
+  "asset": "VEH_FF12_RacingCar",
+  "blender": "5.2.1 LTS",
+  "summary": {
+    "result": "PASS",
+    "blockers_failed": 0,
+    "warnings": 0
+  },
+  "metrics": {
+    "tris_high": 47516,
+    "tris_low": 7372,
+    "materials": 8,
+    "bbox_m": [
+      1.84,
+      4.11,
+      0.882
+    ],
+    "objects_high": 116,
+    "wheelbase_m": 2.56,
+    "track_width_m": 1.46
+  },
+  "checks": [
+    {
+      "id": "U01",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "bbox 1.840 x 4.110 x 0.882 m vs target (1.84, 4.11, 0.88)"
+    },
+    {
+      "id": "U02",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "all scales 1.0"
+    },
+    {
+      "id": "U03",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "lowest z = -0.0020"
+    },
+    {
+      "id": "U06",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "all meshes have UVs"
+    },
+    {
+      "id": "U07",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "no empty material slots"
+    },
+    {
+      "id": "U08",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "47516 tris (max 150000)"
+    },
+    {
+      "id": "U09",
+      "severity": "WARN",
+      "result": "PASS",
+      "detail": "47516 tris (target (40000, 100000))"
+    },
+    {
+      "id": "U10",
+      "severity": "WARN",
+      "result": "PASS",
+      "detail": "8 materials"
+    },
+    {
+      "id": "V01",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "wheelbase 2.560 m"
+    },
+    {
+      "id": "V02",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "critical intersections: []"
+    },
+    {
+      "id": "U15",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "exported 117 objs / reimported 117; materials 8/8"
+    }
+  ],
+  "category": "vehicle",
+  "style": "realistic_game",
+  "stage1": {
+    "objects": 66,
+    "tris": 7372,
+    "dims": [
+      1.840000033378601,
+      4.100000381469727,
+      0.8799999952316284
+    ],
+    "intersections": []
+  },
+  "assumptions": [
+    "Reference photo is top-down view (681x1265 px) showing exact wheelbase (2.56 m) and track width (1.46 m).",
+    "Modern wide Yokohama Advan tires mounted on vintage wire spoke knock-off wheels.",
+    "External exhaust header runner exits right hood louvers and routes along the right flank to a megaphone tip.",
+    "Internal spaceframe and engine block modeled conservatively under UNCERTAIN_ prefix."
+  ],
+  "uncertain": [
+    "UNCERTAIN_Diff_Transaxle",
+    "UNCERTAIN_ENGINE_Block",
+    "UNCERTAIN_FRAME_Rail_0",
+    "UNCERTAIN_FRAME_Rail_1",
+    "UNCERTAIN_FRAME_Rail_2",
+    "UNCERTAIN_FRAME_Rail_3",
+    "UNCERTAIN_FRAME_Rail_4",
+    "UNCERTAIN_FRAME_Rail_5",
+    "UNCERTAIN_FRAME_Rail_6",
+    "Internal chassis mounting gussets",
+    "Cockpit pedal box"
+  ],
+  "outputs": {
+    "blend": "output/VEH_FF12_RacingCar/blend/VEH_FF12_RacingCar.blend",
+    "glb": "output/VEH_FF12_RacingCar/glb/VEH_FF12_RacingCar.glb",
+    "renders": "output/VEH_FF12_RacingCar/renders/"
+  }
+}

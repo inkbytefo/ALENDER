@@ -1,0 +1,121 @@
+{
+  "asset": "VEH_Gemini_Motorcycle",
+  "blender": "5.2.1 LTS",
+  "summary": {
+    "result": "PASS",
+    "blockers_failed": 0,
+    "warnings": 0
+  },
+  "metrics": {
+    "tris_high": 65452,
+    "tris_low": 9808,
+    "materials": 8,
+    "bbox_m": [
+      0.706,
+      2.059,
+      1.03
+    ],
+    "objects_high": 192,
+    "wheelbase_m": 1.4439,
+    "photo_pitch_deg": 1.985,
+    "rake_deg": 22.0
+  },
+  "checks": [
+    {
+      "id": "U01",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "bbox 0.706 x 2.059 x 1.030 m vs target (None, 2.05, 1.045)"
+    },
+    {
+      "id": "U02",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "all scales 1.0"
+    },
+    {
+      "id": "U03",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "lowest z = 0.0000"
+    },
+    {
+      "id": "U06",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "all meshes have UVs"
+    },
+    {
+      "id": "U07",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "no empty material slots"
+    },
+    {
+      "id": "U08",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "65452 tris (max 150000)"
+    },
+    {
+      "id": "U09",
+      "severity": "WARN",
+      "result": "PASS",
+      "detail": "65452 tris (target (40000, 100000))"
+    },
+    {
+      "id": "U10",
+      "severity": "WARN",
+      "result": "PASS",
+      "detail": "8 materials"
+    },
+    {
+      "id": "V01",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "wheelbase 1.444 m"
+    },
+    {
+      "id": "V02",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "critical intersections: []"
+    },
+    {
+      "id": "U15",
+      "severity": "BLOCKER",
+      "result": "PASS",
+      "detail": "exported 193 objs / reimported 193; materials 8/8"
+    }
+  ],
+  "category": "vehicle",
+  "style": "realistic_game",
+  "stage1": {
+    "objects": 135,
+    "tris": 9808,
+    "intersections": []
+  },
+  "assumptions": [
+    "Photo shows the bike's RIGHT side; model -Y forward, +Z up, root at axle midpoint on ground.",
+    "Scale 400 px/m from tyre sizes 180/55-17 & 120/70-17; matches cheatsheet length/height.",
+    "Rear wheel on paddock stand in photo: 1.98 deg nose-down pitch removed; model at rest.",
+    "Engine interpreted as air-cooled Honda inline-4; widths from standard construction."
+  ],
+  "uncertain": [
+    "UNCERTAIN_BODY_Tank_FillerCap",
+    "UNCERTAIN_ENGINE_Airbox",
+    "UNCERTAIN_ENGINE_Cover_Main_L",
+    "UNCERTAIN_ENGINE_Cover_Small_L",
+    "UNCERTAIN_FRAME_Crossmember_0",
+    "UNCERTAIN_FRAME_Crossmember_1",
+    "UNCERTAIN_FRAME_Downtube_L",
+    "UNCERTAIN_FRAME_Downtube_R",
+    "SUSP_Shock_Rear_* mount points",
+    "left (+X) side: chain run, covers"
+  ],
+  "outputs": {
+    "blend": "output/VEH_Gemini_Motorcycle/blend/VEH_Gemini_Motorcycle.blend",
+    "glb": "output/VEH_Gemini_Motorcycle/glb/VEH_Gemini_Motorcycle.glb",
+    "renders": "output/VEH_Gemini_Motorcycle/renders/"
+  }
+}
