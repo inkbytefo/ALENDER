@@ -63,15 +63,18 @@ RECV_BODY = [(433, 272), (700, 269), (852, 265), (852, 330), (775, 331), (680, 3
              (640, 338), (560, 339), (433, 341)]
 RECV_END_U = (433, 441)             # rear trunnion / stock ferrule band
 # dust cover: top polyline and bottom per station (bottom rises over the ejection port)
-COVER_TOP = [(441, 266), (445, 258), (450, 252), (460, 246), (470, 240), (480, 232), (490, 228.5),
-             (520, 228), (700, 229), (800, 231)]
+# v2: measured on ref/REF_MASK.png (wb.py profile 441 800 215 272 --side top); v1 was up to 4 px high.
+COVER_TOP = [(441, 266), (446, 258), (451, 251), (461, 248), (481, 230), (491, 228), (541, 228),
+             (591, 229), (655, 232), (730, 232), (798, 235)]
 COVER_BOT = [(441, 270), (690, 269), (698, 250), (800, 249)]
 EJECTION_PORT = [(700, 250), (832, 250), (832, 276), (700, 276)]      # bright carrier visible here
 CHARGING_KNOB_PX = (818, 257)
 CHARGING_KNOB_R_PX = 7.0
-REAR_SIGHT_BASE = [(820, 219), (870, 216), (918, 216), (918, 263), (852, 263), (852, 270), (820, 270)]
+# v2: bottom 263 -> 268 (sits on the handguard top; the 5 px gap was not in the photo - gate R02)
+REAR_SIGHT_BASE = [(820, 219), (870, 216), (918, 216), (918, 268), (820, 270)]
 REAR_SIGHT_LEAF = [(800, 211), (807, 209), (890, 214), (890, 219), (806, 219), (800, 217)]
 REAR_SIGHT_SLIDER_PX = (825, 218)
+REAR_SIGHT_POST = [(801, 212), (813, 212), (813, 246), (801, 246)]   # v2: front upright of the leaf (R02)
 # right-side controls
 SAFETY_PIVOT_PX = (535, 292)
 SAFETY_PIVOT_R_PX = 11.5
@@ -94,20 +97,24 @@ GRIP = [(446, 341), (548, 341), (546, 352), (540, 388), (535, 395), (525, 412), 
         (447, 347)]
 
 # --------------------------------------------------------------------------- magazine
-MAG_REAR = [(678, 333), (686, 380), (697, 430), (708, 462), (720, 493), (735, 520), (753, 547),
-            (775, 573), (797, 597), (820, 610), (846, 617)]
-MAG_FRONT = [(773, 333), (786, 370), (800, 403), (815, 433), (833, 463), (852, 487), (873, 507),
-             (893, 520), (910, 530)]
+# v3: MEASURED on the photo (50 % rule, darkest channel < 150, one sample every 24 rows) instead of
+# read by eye. The eye-read v2 spine drifted up to 26 px outward near the bottom (gate R02 wedge).
+MAG_REAR = [(669, 338), (673, 362), (680, 386), (687, 410), (697, 434), (708, 458), (721, 482),
+            (736, 506), (754, 530), (775, 554), (800, 578), (830, 602), (851, 617)]
+MAG_FRONT = [(774, 338), (779, 362), (787, 386), (798, 410), (812, 434), (829, 458), (850, 482),
+             (876, 506), (908, 533)]
 
-# magazine v2 (real geometry): spine and front edge are circular arcs fitted to MAG_REAR[:-2] /
-# MAG_FRONT (residual <= 2.5 px). Depth along the section = 100 px = 62.6 mm (spec ~64 mm),
-# spine arc 218 mm (spec length ~223 mm). Features after Small Arms Review: 0.75 mm sheet,
+# magazine (real geometry): spine and front edge are circular arcs, least-squares fitted to the
+# measured edges (v3: rear residual max 1.3 px / mean 0.3 px, front 0.7 / 0.2 px; the eye-fitted v2
+# arcs were off by up to 19 / 3.8 px on the photo). Features after Small Arms Review: 0.75 mm sheet,
 # 3 outward longitudinal ribs + 1 inward spine rib, 5 short horizontal ribs at the bottom,
 # welded lip reinforcement plates, front locking lug, rear catch lug, sliding floorplate.
-MAG_REAR_ARC = (1075.7, 315.2, 396.7)     # centre u, centre v, radius (px)
-MAG_FRONT_ARC = (1068.0, 280.0, 297.3)
+MAG_REAR_ARC = (1073.8, 272.3, 410.4)     # centre u, centre v, radius (px)
+MAG_FRONT_ARC = (1066.1, 273.0, 300.8)
 MAG_TOP_V = 318.0                         # spine top, hidden inside the receiver (bottom v~333)
-MAG_FLOOR_LINE = [(910, 530), (818, 616)] # outer bottom (front -> rear); lowest point v~617 kept
+# outer bottom (front -> rear). v2 measured on the photo (wb.py profile 812 912 480 630 --photo-thr 150):
+# lowest point (852, 617); v1 had the rear end at (818, 616) -> floorplate rotated, 20 px wedge in R02.
+MAG_FLOOR_LINE = [(908, 533), (851, 617)]
 MAG_FLOOR_T_PX = 4.0                      # floorplate thickness (2.5 mm)
 MAG_E_SPINE, MAG_E_FRONT = 5.0, 3.2       # section roundness: flat spine, rounded front
 MAG_LIP_FRAC = 0.10
@@ -139,15 +146,20 @@ BRAKE = dict(collar=(1390, 1400, 12.0), u0=1400, top_end=1418, bot_end=1433, r=1
 
 # --------------------------------------------------------------------------- wood
 HG_LOWER_TOP = [(852, 268), (1086, 270)]
-HG_LOWER_BOT = [(852, 326), (870, 331), (890, 331), (930, 321), (980, 318), (1030, 315),
-                (1086, 315)]
+# v2: measured with the 50 % rule (python wb.py profile PROP_AK_Rifle 852 1086 300 345 --photo-thr 150);
+# the eye-read v1 [(852,326) ... (1030,315),(1086,315)] sat on the lacquer highlight, 3-8 px too high.
+HG_LOWER_BOT = [(852, 328), (866, 336), (890, 333), (930, 327), (980, 324), (1030, 322),
+                (1086, 321)]
 HG_UPPER_TOP = [(935, 224), (1000, 224), (1060, 226), (1078, 229), (1084, 233)]
 HG_UPPER_BOT = [(935, 262), (1084, 259)]
 HG_REAR_CAP = [(918, 226), (935, 224), (935, 266), (918, 266)]         # upper handguard retainer
 HG_FRONT_BAND = [(1084, 232), (1100, 232), (1100, 322), (1084, 322)]    # handguard retainer band
 STOCK_TOP = [(44, 281), (150, 281), (273, 285), (300, 297), (333, 298), (367, 290), (400, 281),
              (433, 273)]
-STOCK_BOT = [(38, 437), (100, 428), (160, 420), (267, 387), (333, 363), (400, 347), (433, 340)]
+# v2: measured on ref/REF_MASK.png (wb.py profile 38 433 330 448 --side bottom); v1 belly was 4-7 px
+# inside the photo edge. u 100-191 interpolated (the sling swivel hangs below the edge there).
+STOCK_BOT = [(38, 438), (70, 436), (100, 428), (130, 421), (160, 414), (191, 407), (256, 389), (288, 383),
+             (328, 372), (352, 363), (425, 344), (433, 341)]
 BUTT_PLATE = [(37, 281), (45, 280), (39, 438), (26, 438), (24, 432)]
 SLING_SWIVEL_PX = (135, 425)
 # buttstock v2 (AKM laminate: straight top + shallow comb dip, slab sides, steel buttplate with
@@ -167,3 +179,32 @@ ANCHORS = [((0.0, *P(1300, 295)), (1300, 295)), ((0.0, *P(40, 360)), (40, 360)),
            ((0.0, *P(760, 500)), (760, 500))]
 
 MARKS = [(1300, 295), (40, 360), (1369, 219), (818, 257), (535, 292)]
+
+
+# --------------------------------------------------------------------------- silhouette (gate R01)
+# The measured outlines above, as closed px polygons. Their union is the reference silhouette the
+# reference-camera render is scored against (IoU + boundary distance). Photo truth = ref/REF_MASK.png
+# (python wb.py mask PROP_AK_Rifle --fill 760,258 745,262 45,408 -> gate R02).
+def _band(u0, u1, v, r):
+    return [(u0, v - r), (u1, v - r), (u1, v + r), (u0, v + r)]
+
+
+def _circle(c, r, n=12):
+    import math
+    return [(c[0] + r * math.cos(2 * math.pi * k / n), c[1] + r * math.sin(2 * math.pi * k / n)) for k in range(n)]
+
+
+_B = BRAKE
+SILHOUETTE = [
+    RECV_BODY, COVER_TOP + COVER_BOT[::-1], REAR_SIGHT_BASE, REAR_SIGHT_LEAF, REAR_SIGHT_POST, EJECTION_PORT,
+    [(RECV_END_U[0], 270), (RECV_END_U[1], 270), (RECV_END_U[1], 342), (RECV_END_U[0], 342)],
+    STOCK_TOP + STOCK_BOT[::-1], BUTT_PLATE, GRIP, MAG_REAR + MAG_FRONT[::-1],
+    [(u, BORE_V - r) for (u, r) in BARREL] + [(u, BORE_V + r) for (u, r) in BARREL[::-1]],
+    GAS_BLOCK, BAYONET_LUG, _band(918, GAS_TUBE["u1"], GAS_TUBE["v"], GAS_TUBE["r"]), FSB, FSB_POST,
+    _band(_B["collar"][0], _B["collar"][1], BORE_V, _B["collar"][2]),
+    [(_B["u0"], BORE_V - _B["r"]), (_B["top_end"], BORE_V - _B["r"]), (_B["bot_end"], BORE_V + _B["r"]),
+     (_B["u0"], BORE_V + _B["r"])],
+    HG_LOWER_TOP + HG_LOWER_BOT[::-1], HG_UPPER_TOP + HG_UPPER_BOT[::-1], HG_REAR_CAP, HG_FRONT_BAND,
+    TRIGGER_GUARD, TRIGGER, MAG_CATCH, SAFETY_LEVER, _circle(SAFETY_PIVOT_PX, SAFETY_PIVOT_R_PX),
+    _circle(CHARGING_KNOB_PX, CHARGING_KNOB_R_PX),
+]

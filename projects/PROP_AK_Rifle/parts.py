@@ -1,27 +1,39 @@
 """
-Part builders for PROP_AK_Rifle. Every builder takes a LOD profile (LOW = Stage 1, HIGH = Stage 2)
-and reads ALL placement from landmarks.py (pixels). Library map: docs/04_MODELING_TOOLKIT.md.
+Part builders for PROP_AK_Rifle (staged pipeline, docs/01_WORKFLOW.md). Every builder takes a stage
+profile and reads ALL placement from landmarks.py (pixels). Library map: docs/04_MODELING_TOOLKIT.md.
+
+  S1 PRIMITIVE  *_prim builders: boxes / cylinders / simplified outlines from the same landmarks
+  S2 LOWPOLY    the real builders with PROFILES[2] (game LOD0: no bevels, no rivets / ribs)
+  S3 DETAIL     the same builders with PROFILES[3] (= the former HIGH: bevels, ribs, rivets)
+  S4 GAME       bake S3 -> S2 atlas, LOD1-2, per-part convex hulls, Godot-ready glb
 
 Groups: RECV_ (receiver), SIGHT_, BARREL_, GAS_, FSB_ (front sight), MUZZLE_, WOOD_, GRIP_, MAG_,
 CTRL_ (trigger, guard, safety, mag catch, charging handle), FASTENER_.
-Right-side-only parts (photo side) sit at -X. LOW objects get _LOW via nm().
+Right-side-only parts (photo side) sit at -X. Stage suffixes (_PRIM/_LP/_HP) come from nm().
 """
 import math
 import bmesh
 from mathutils import Vector
 
 import landmarks as L
-from workbench import tables
-from workbench.bl import mesh, mods
+from workbench import tables, stages, silhouette
+from workbench.stages import Part
+from workbench.bl import mesh, mods, prim
 
 mesh.set_ref(L.REF)
 
-LOW = dict(name="LOW", ring=12, lathe=12, stations=8, mag_st=10, bevel=False, detail=False,
-           C_PRIMARY="02_LOW_PRIMARY", C_SECONDARY="03_LOW_SECONDARY", C_MECH="04_LOW_MECHANICAL",
-           C_DETAIL="04_LOW_MECHANICAL")
-HIGH = dict(name="HIGH", ring=28, lathe=28, stations=26, mag_st=26, bevel=True, detail=True,
-            C_PRIMARY="05_HIGH_BODY", C_SECONDARY="05_HIGH_BODY", C_MECH="06_HIGH_MECHANICAL",
-            C_DETAIL="07_DETAILS")
+CATEGORY = "hero_prop"                 # tables.BUDGETS
+TARGET_DIMS = (None, 0.880, None)      # overall length (AKM, fixed stock, slant brake)
+GROUND = False                         # hand-held: origin on the bore axis, parts below Z = 0
+PROFILES = {
+    1: stages.profile(1, ring=8, lathe=8, stations=6, mag_st=6),
+    2: stages.profile(2, ring=16, lathe=16, stations=20, mag_st=16),
+    3: stages.profile(3, ring=28, lathe=28, stations=26, mag_st=26),      # = former HIGH (18,668 tris)
+}
+GAME = dict(engine="godot", bake=True, tex=2048, lod=(0.5, 0.25), drop_small_m=0.03)
+LICENCE = "own procedural build; downloaded AK47.blend studied only, nothing reused"
+UNCERTAIN = ["all widths (X) estimated (pure side photo)", "left side mirrored from the right",
+             "rear sight leaf / slider simplified", "magazine top and internals not modelled"]
 
 PALETTE = {                                             # <= 4 materials for a prop
     "MAT_STEEL_DARK": ((0.030, 0.031, 0.034), 0.85, 0.42),      # parkerized / blued steel
@@ -38,7 +50,7 @@ CRITICAL_PAIRS = [("MAG_", "GRIP_"), ("MAG_", "CTRL_Trigger"), ("MAG_", "CTRL_Ma
 
 
 def nm(lod, name):
-    return name if lod["name"] == "HIGH" else name + "_LOW"
+    return stages.nm(lod, name)
 
 
 def hard(ob, lod, bevel=0.0012, segments=2):
@@ -222,6 +234,8 @@ def receiver(lod):
     out.append(hard(rs, lod, 0.0012))
     leaf = plate(nm(lod, "SIGHT_RearLeaf"), lod["C_SECONDARY"], L.REAR_SIGHT_LEAF, L.HW_LEAF, STEEL)
     out.append(hard(leaf, lod, 0.0006))
+    post = plate(nm(lod, "SIGHT_RearPost"), lod["C_SECONDARY"], L.REAR_SIGHT_POST, L.HW_LEAF * 0.6, STEEL)
+    out.append(hard(post, lod, 0.0005))
     y, z = L.P(*L.REAR_SIGHT_SLIDER_PX)
     sl = mesh.box(nm(lod, "SIGHT_Slider"), lod["C_SECONDARY"], (0, y, z + 0.0005),
                   (2 * L.HW_LEAF + 0.004, 0.009, 0.006), STEEL)
@@ -247,8 +261,11 @@ def barrel(lod):
         a, b = L.GAS_TUBE_RING_U
         out.append(mesh.cyl(nm(lod, "GAS_TubeRing"), lod["C_DETAIL"], (0, Y(a), zt), (0, Y(b), zt),
                             L.m(g["r"]) + 0.0007, s, STEEL))
-    # front sight: base block around the barrel + two protective ears + a thin centre post
-    base = [(u, min(v, L.FSB_EAR_BASE_V)) for (u, v) in L.FSB]
+    # front sight: base block around the barrel + two protective ears + a thin centre post.
+    # v2: the block is the outline BELOW the ear base; v1 clamped with min() and built the ear region
+    # as a solid block while the block under the barrel was missing (found by gates R01/R02).
+    eb = L.FSB_EAR_BASE_V
+    base = [(min(p[0] for p in L.FSB), eb), (max(p[0] for p in L.FSB), eb)] + [p for p in L.FSB if p[1] > eb]
     out.append(hard(plate(nm(lod, "FSB_Body"), C, base, L.HW_FSB, STEEL), lod, 0.0015))
     y, z = L.P(*L.FSB_HOLE_PX)
     import bpy
@@ -380,7 +397,9 @@ def buttstock(lod):
 
 
 def grip(lod):
-    ob = plate(nm(lod, "GRIP_Pistol"), lod["C_PRIMARY"], L.GRIP, L.HW_GRIP, POLY)
+    # outline without sub-2 px wiggles: the 6.5 mm bevel collapses short edges into 0-area faces (U05)
+    poly = silhouette.simplify(L.GRIP + [L.GRIP[0]], 1.0)[:-1]
+    ob = plate(nm(lod, "GRIP_Pistol"), lod["C_PRIMARY"], poly, L.HW_GRIP, POLY)
     if lod["bevel"]:
         mods.bevel(ob, 0.0065, 4, angle=30)
         mods.weighted_normal(ob)
@@ -459,7 +478,11 @@ def magazine(lod):
     Rl, Fl = section(th0 + (th1 - th0) * 0.07)
     fwd, dn = (Ft - Rt).normalized(), (Rl - Rt).normalized()
     fl = [Ft + dn * 2, Ft + fwd * 5 + dn * 3, Ft + fwd * 5 + dn * 11, Ft + dn * 13]
-    rl = [Rl - fwd * 0.0 + dn * 3, Rl - fwd * 6 + dn * 3, Rl - fwd * 6 + dn * 12, Rl + dn * 12]
+    # rear catch lug: 2 px proud of the spine (v3 spine is measured; 6 px ran into the mag catch)
+    # 2 px deep, back face >= 1 px clear of the mag catch (a thinner lug collapses under the bevel: U05)
+    back = max(0.0, min(2.0, Rl.x - max(p[0] for p in L.MAG_CATCH) - 1.0))
+    bf, ff = Rl - fwd * back, Rl - fwd * back + fwd * 2.0
+    rl = [ff + dn * 3, bf + dn * 3, bf + dn * 12, ff + dn * 12]
     for nme, poly, hw in (("MAG_LugFront", fl, 0.0045), ("MAG_LugRear", rl, 0.0070)):
         out.append(hard(plate(nm(lod, nme), lod["C_SECONDARY"], [tuple(p) for p in poly], hw, STEEL),
                         lod, 0.0005))
@@ -520,9 +543,67 @@ def details(lod):
     return out
 
 
-def build_all(lod):
-    return {"receiver": receiver(lod), "barrel": barrel(lod), "wood": woodwork(lod), "grip": grip(lod),
-            "stock": buttstock(lod), "mag": magazine(lod), "controls": controls(lod), "details": details(lod)}
+# ============================================================================ Stage 1 primitives
+# Same landmarks, crude shapes: outlines simplified to their main corners, round parts as 8-gons.
+def receiver_prim(P):
+    C = P["coll"]
+    return [prim.box_px(nm(P, "RECV_Body"), C, L.RECV_BODY, L.HW_RECV, STEEL),
+            prim.plate_px(nm(P, "RECV_DustCover"), C, L.COVER_TOP + L.COVER_BOT[::-1], L.HW_COVER, STEEL, tol=3),
+            prim.box_px(nm(P, "SIGHT_RearBase"), C, L.REAR_SIGHT_BASE, L.HW_RSIGHT, STEEL),
+            prim.box_px(nm(P, "SIGHT_RearLeaf"), C, L.REAR_SIGHT_LEAF, L.HW_LEAF, STEEL)]
+
+
+def barrel_prim(P):
+    C, s = P["coll"], P["lathe"]
+    g, b = L.GAS_TUBE, L.BRAKE
+    return [prim.cyl_px(nm(P, "BARREL_Main"), C, (L.RECV_FRONT_U, L.BORE_V), (1395, L.BORE_V), L.m(12.5), s, STEEL),
+            prim.cyl_px(nm(P, "GAS_Tube"), C, (918, g["v"]), (g["u1"], g["v"]), L.m(g["r"]), s, STEEL),
+            prim.box_px(nm(P, "GAS_Block"), C, L.GAS_BLOCK, L.HW_GASBLOCK, STEEL),
+            prim.plate_px(nm(P, "FSB_Body"), C, L.FSB, L.HW_FSB, STEEL, tol=4),
+            prim.cyl_px(nm(P, "MUZZLE_Brake"), C, (b["collar"][0], L.BORE_V), (b["bot_end"], L.BORE_V),
+                        L.m(b["r"]), s, STEEL)]
+
+
+def woodwork_prim(P):
+    C = P["coll"]
+    return [prim.plate_px(nm(P, "WOOD_HandguardLower"), C, L.HG_LOWER_TOP + L.HG_LOWER_BOT[::-1], 0.019, WOOD, tol=4),
+            prim.plate_px(nm(P, "WOOD_HandguardUpper"), C, L.HG_UPPER_TOP + L.HG_UPPER_BOT[::-1], 0.0155, WOOD, tol=4),
+            prim.box_px(nm(P, "RECV_HandguardBand"), C, L.HG_FRONT_BAND, 0.0195, STEEL)]
+
+
+def buttstock_prim(P):
+    C = P["coll"]
+    return [prim.plate_px(nm(P, "WOOD_Stock"), C, L.STOCK_TOP + L.STOCK_BOT[::-1], 0.020, WOOD, tol=5),
+            prim.plate_px(nm(P, "WOOD_ButtPlate"), C, L.BUTT_PLATE, 0.021, STEEL, tol=2)]
+
+
+def grip_prim(P):
+    return [prim.plate_px(nm(P, "GRIP_Pistol"), P["coll"], L.GRIP, L.HW_GRIP, POLY, tol=6)]
+
+
+def magazine_prim(P):
+    return [prim.plate_px(nm(P, "MAG_Body"), P["coll"], L.MAG_REAR + L.MAG_FRONT[::-1], L.HW_MAG, STEEL, tol=5)]
+
+
+def controls_prim(P):
+    C = P["coll"]
+    return [prim.plate_px(nm(P, "CTRL_Guard"), C, L.TRIGGER_GUARD, L.HW_GUARD, STEEL, tol=2),
+            prim.plate_px(nm(P, "CTRL_Trigger_Blade"), C, L.TRIGGER, L.HW_TRIGGER, STEEL, tol=2),
+            prim.box_px(nm(P, "CTRL_MagCatch"), C, L.MAG_CATCH, L.HW_CATCH, STEEL)]
+
+
+# ============================================================================ registry
+# One entry per part group: S1 uses prim, S2/S3 the same real builder with their profiles.
+PARTS = [
+    Part("receiver", receiver, prim=receiver_prim, collision="hull"),
+    Part("barrel", barrel, prim=barrel_prim, collision="hull"),
+    Part("woodwork", woodwork, prim=woodwork_prim, collision="hull"),
+    Part("buttstock", buttstock, prim=buttstock_prim, collision="hull"),
+    Part("grip", grip, prim=grip_prim, collision="hull"),
+    Part("magazine", magazine, prim=magazine_prim, collision="hull"),
+    Part("controls", controls, prim=controls_prim, collision="none"),
+    Part("details", details, collision="none"),              # S3 only (returns [] without detail)
+]
 
 
 def guide_points():
@@ -530,7 +611,7 @@ def guide_points():
             "GUIDE_ButtHeel": L.P3(L.BUTT_U, 437), "GUIDE_FrontSightPost": L.P3(1369, 219)}
 
 
-# pivots for game animation (world points)
+# moving parts for game animation: origin on the joint (world point), keyed by base name
 PIVOTS = {
     "MAG_Body": lambda: L.P3(778, 331),                    # rocks in around the front locking lug
     "CTRL_Trigger_Blade": lambda: L.P3(574, 332),
@@ -538,3 +619,7 @@ PIVOTS = {
     "CTRL_MagCatch": lambda: L.P3(*L.MAG_CATCH_PIN_PX),
     "CTRL_Charging_Handle": lambda: L.P3(*L.CHARGING_KNOB_PX, x=-L.HW_RECV),
 }
+# parts that ride with a moving part (child base name -> parent base name)
+CHILDREN = {"CTRL_Charging_Carrier": "CTRL_Charging_Handle", "MAG_Floorplate": "MAG_Body", "MAG_Ribs": "MAG_Body",
+            "MAG_LipPlates": "MAG_Body", "MAG_LugFront": "MAG_Body", "MAG_LugRear": "MAG_Body",
+            "CTRL_Safety_Pivot": "CTRL_Safety_Lever"}

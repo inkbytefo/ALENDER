@@ -6,7 +6,7 @@
 - Loops end on the start pose. Mechanical motion LINEAR (`anim.set_interpolation(ob, "LINEAR")`),
   organic motion BEZIER with anticipation / follow-through / ease.
 - Pivots first: an object only rotates correctly if its origin is the pivot (wheel = axle,
-  door = hinge, steering = steering axis). Set origins in Stage 2 (`scene.set_origin`).
+  door = hinge, steering = steering axis). Set them in `parts.PIVOTS` / `CHILDREN`; the pipeline applies them in S3 and S4 (gate M01).
 - Bake constraints/IK before glTF export; export with `export.glb(objs, path, animations=True, skins=True)`.
 
 ## Library

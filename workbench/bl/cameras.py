@@ -48,12 +48,14 @@ def reference_camera(ref, anchors, res=None, distance=7.0, name="CAM_REFERENCE")
     W, H = res or ref.image_size
     sc = bpy.context.scene
     sc.render.resolution_x, sc.render.resolution_y = W, H
+    cam_size = (int(W), int(H))
 
-    if getattr(ref, "view", "SIDE") == "TOP":
+    if getattr(ref, "view", "SIDE") in ("TOP", "CALIBRATED"):
         lens = getattr(ref, "lens", 36.0 * distance / (W / ref.S))
         loc = getattr(ref, "cam_loc", (0.0, 0.0, distance))
         rot = getattr(ref, "cam_rot", (0.0, 0.0, math.radians(180.0)))
         cam = make(name, loc, rot, lens=lens, collection="00_REFERENCE")
+        cam["wb_image_size"] = cam_size
         bpy.context.view_layer.update()
         err = 0.0
         for p, px in anchors:
@@ -62,11 +64,14 @@ def reference_camera(ref, anchors, res=None, distance=7.0, name="CAM_REFERENCE")
         cam["anchor_reprojection_error_px"] = round(err / max(1, len(anchors)), 2)
         return cam
 
+    ortho = getattr(ref, "ortho", False)               # landmarks: REF.ortho = True for orthographic drawings
     lens = 36.0 * distance / (W / ref.S)
     cy, cz = ref.P(W / 2.0, H / 2.0)
     side = -1.0 if ref.sign > 0 else 1.0          # front on image right -> camera at -X
     yaw = -R90 if side < 0 else R90
-    cam = make(name, (side * distance, cy, cz), (R90, 0.0, yaw), lens=lens, collection="00_REFERENCE")
+    cam = make(name, (side * distance, cy, cz), (R90, 0.0, yaw), lens=lens, collection="00_REFERENCE",
+               ortho_scale=(W / ref.S) if ortho else None)
+    cam["wb_image_size"] = cam_size
     best = None
     for sgn in (1, -1):
         cam.rotation_euler = (R90, sgn * ref.theta, yaw)
@@ -91,7 +96,12 @@ def reference_image(ref, path, cam, name="REF_PHOTO", depth=0.6):
     ob.data = img
     ob.empty_display_size = ref.image_size[0] / ref.S
     ob.empty_image_offset = (-0.5, -0.5)
-    if getattr(ref, "view", "SIDE") == "TOP":
+    if getattr(ref, "view", "SIDE") == "CALIBRATED":
+        # A viewport image plane at a chosen camera-space distance. It does not
+        # assert a physical depth for any photographed part.
+        ob.empty_display_size = 36.0 * depth / cam.data.lens
+        ob.location = cam.matrix_world @ Vector((0.0, 0.0, -depth))
+    elif getattr(ref, "view", "SIDE") == "TOP":
         ob.location = (cam.location.x, cam.location.y, -depth)
     else:
         cy, cz = ref.P(ref.image_size[0] / 2.0, ref.image_size[1] / 2.0)

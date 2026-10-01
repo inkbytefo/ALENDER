@@ -1,0 +1,1480 @@
+{
+  "asset": "VEH_Honda_NSX_Widebody",
+  "pipeline": "stages-v1",
+  "stages": {
+    "1": {
+      "stage": "PRIMITIVE",
+      "summary": {
+        "result": "PASS",
+        "blockers_failed": 0,
+        "warnings": 0
+      },
+      "inputs_hash": "aa44d528afac",
+      "time": "2026-10-01 18:23:34",
+      "metrics": {
+        "objects": 24,
+        "tris": 2868,
+        "dims": [
+          2.0,
+          4.2598,
+          1.0562
+        ],
+        "bbox_min": [
+          -1.0,
+          -2.249,
+          0.0017
+        ],
+        "top_tris": [
+          [
+            1068,
+            "BODY_Shell_PRIM"
+          ],
+          [
+            196,
+            "CABIN_Greenhouse_PRIM"
+          ],
+          [
+            160,
+            "WHEEL_Tire_1_R_PRIM"
+          ],
+          [
+            160,
+            "WHEEL_Tire_1_L_PRIM"
+          ],
+          [
+            160,
+            "WHEEL_Tire_0_R_PRIM"
+          ],
+          [
+            160,
+            "WHEEL_Tire_0_L_PRIM"
+          ],
+          [
+            160,
+            "WHEEL_Rim_1_R_PRIM"
+          ],
+          [
+            160,
+            "WHEEL_Rim_1_L_PRIM"
+          ],
+          [
+            160,
+            "WHEEL_Rim_0_R_PRIM"
+          ],
+          [
+            160,
+            "WHEEL_Rim_0_L_PRIM"
+          ]
+        ],
+        "materials": [
+          "MAT_BODY",
+          "MAT_RIM",
+          "MAT_TIRE",
+          "MAT_TRIM"
+        ],
+        "hygiene": {
+          "non_manifold": 0,
+          "boundary": 0,
+          "loose": 0,
+          "degenerate": 0,
+          "flipped": 0,
+          "inverted": 0,
+          "ngons": 20,
+          "quads": 1365,
+          "tris": 0,
+          "faces": 1385,
+          "ngon_ratio": 0.0144
+        },
+        "R01": {
+          "iou": 0.9838,
+          "area_ratio": 0.9926,
+          "b_mean": 2.38,
+          "b_p95": 5.39,
+          "b_max": 16.0,
+          "zones": [
+            {
+              "box": [
+                60,
+                430,
+                303,
+                551
+              ],
+              "mean_px": 3.7,
+              "max_px": 16.0,
+              "signed_px": 0.8,
+              "hint": "model too large"
+            },
+            {
+              "box": [
+                1767,
+                430,
+                2011,
+                551
+              ],
+              "mean_px": 3.3,
+              "max_px": 14.3,
+              "signed_px": -0.7,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                303,
+                430,
+                547,
+                551
+              ],
+              "mean_px": 3.0,
+              "max_px": 3.0,
+              "signed_px": -3.0,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                791,
+                430,
+                1035,
+                551
+              ],
+              "mean_px": 3.0,
+              "max_px": 3.0,
+              "signed_px": -3.0,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                1035,
+                430,
+                1279,
+                551
+              ],
+              "mean_px": 3.0,
+              "max_px": 3.0,
+              "signed_px": -3.0,
+              "hint": "model too small"
+            }
+          ]
+        },
+        "R02": {
+          "iou": 0.9806,
+          "area_ratio": 0.9901,
+          "b_mean": 2.84,
+          "b_p95": 5.66,
+          "b_max": 14.14,
+          "zones": [
+            {
+              "box": [
+                304,
+                431,
+                548,
+                552
+              ],
+              "mean_px": 4.0,
+              "max_px": 4.0,
+              "signed_px": -4.0,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                792,
+                431,
+                1036,
+                552
+              ],
+              "mean_px": 4.0,
+              "max_px": 4.0,
+              "signed_px": -4.0,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                1036,
+                431,
+                1280,
+                552
+              ],
+              "mean_px": 4.0,
+              "max_px": 4.0,
+              "signed_px": -4.0,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                1280,
+                431,
+                1524,
+                552
+              ],
+              "mean_px": 4.0,
+              "max_px": 4.0,
+              "signed_px": -4.0,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                1524,
+                431,
+                1768,
+                552
+              ],
+              "mean_px": 4.0,
+              "max_px": 4.0,
+              "signed_px": -4.0,
+              "hint": "model too small"
+            }
+          ]
+        }
+      },
+      "checks": [
+        {
+          "id": "U01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "bbox 2.000 x 4.260 x 1.056 m vs target (None, None, None) (+-3%)"
+        },
+        {
+          "id": "U02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all scales 1.0"
+        },
+        {
+          "id": "U03",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "lowest z = 0.0017"
+        },
+        {
+          "id": "U07",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no empty material slots"
+        },
+        {
+          "id": "U08",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "2868 tris (S1 max 3000)"
+        },
+        {
+          "id": "U10",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "4 materials (max 8)"
+        },
+        {
+          "id": "U04",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "0 non-manifold edges ; 0 open edges"
+        },
+        {
+          "id": "U05",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "flipped 0, inverted 0 "
+        },
+        {
+          "id": "U16",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "0 degenerate faces/edges "
+        },
+        {
+          "id": "U11",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "0 loose verts/edges "
+        },
+        {
+          "id": "U12",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "n-gons 20/1385 faces = 1.4% (max 5%)"
+        },
+        {
+          "id": "N01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all names GROUP_Part_PRIM"
+        },
+        {
+          "id": "H01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no subsurf on plates / boxes / extrusions"
+        },
+        {
+          "id": "X01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 critical intersections"
+        },
+        {
+          "id": "R01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "iou 0.984 (min 0.85), boundary p95 5.4 px (max 14.0), mean 2.4, max 16.0 | worst: model too large +1px @u60-303 v430-551; model too small -1px @u1767-2011 v430-551; model too small -3px @u303-547 v430-551"
+        },
+        {
+          "id": "R02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "iou 0.981 (min 0.85), boundary p95 5.7 px (max 14.0), mean 2.8, max 14.1 | worst: model too small -4px @u304-548 v431-552; model too small -4px @u792-1036 v431-552; model too small -4px @u1036-1280 v431-552"
+        }
+      ]
+    },
+    "2": {
+      "stage": "LOWPOLY",
+      "summary": {
+        "result": "PASS",
+        "blockers_failed": 0,
+        "warnings": 0
+      },
+      "inputs_hash": "aa44d528afac",
+      "time": "2026-10-01 18:06:49",
+      "metrics": {
+        "objects": 113,
+        "tris": 15196,
+        "dims": [
+          2.036,
+          4.2598,
+          1.0547
+        ],
+        "bbox_min": [
+          -1.018,
+          -2.249,
+          0.0
+        ],
+        "top_tris": [
+          [
+            3884,
+            "BODY_Shell_LP"
+          ],
+          [
+            768,
+            "WHEEL_Tire_1_R_LP"
+          ],
+          [
+            768,
+            "WHEEL_Tire_1_L_LP"
+          ],
+          [
+            768,
+            "WHEEL_Tire_0_R_LP"
+          ],
+          [
+            768,
+            "WHEEL_Tire_0_L_LP"
+          ],
+          [
+            768,
+            "WHEEL_Rim_1_R_LP"
+          ],
+          [
+            768,
+            "WHEEL_Rim_1_L_LP"
+          ],
+          [
+            768,
+            "WHEEL_Rim_0_R_LP"
+          ],
+          [
+            768,
+            "WHEEL_Rim_0_L_LP"
+          ],
+          [
+            384,
+            "BRAKE_Disc_1_R_LP"
+          ]
+        ],
+        "materials": [
+          "MAT_BODY",
+          "MAT_CHROME",
+          "MAT_GLASS",
+          "MAT_LAMP",
+          "MAT_RED",
+          "MAT_RIM",
+          "MAT_TIRE",
+          "MAT_TRIM"
+        ],
+        "hygiene": {
+          "non_manifold": 0,
+          "boundary": 0,
+          "loose": 0,
+          "degenerate": 0,
+          "flipped": 0,
+          "inverted": 0,
+          "ngons": 36,
+          "quads": 7247,
+          "tris": 128,
+          "faces": 7411,
+          "ngon_ratio": 0.0049
+        },
+        "R01": {
+          "iou": 0.9845,
+          "area_ratio": 0.9943,
+          "b_mean": 2.28,
+          "b_p95": 5.39,
+          "b_max": 16.0,
+          "zones": [
+            {
+              "box": [
+                60,
+                431,
+                303,
+                552
+              ],
+              "mean_px": 3.7,
+              "max_px": 16.0,
+              "signed_px": 0.8,
+              "hint": "model too large"
+            },
+            {
+              "box": [
+                1767,
+                431,
+                2011,
+                552
+              ],
+              "mean_px": 3.4,
+              "max_px": 14.3,
+              "signed_px": -0.7,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                791,
+                431,
+                1035,
+                552
+              ],
+              "mean_px": 3.0,
+              "max_px": 3.0,
+              "signed_px": -3.0,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                1035,
+                431,
+                1279,
+                552
+              ],
+              "mean_px": 3.0,
+              "max_px": 3.0,
+              "signed_px": -3.0,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                1279,
+                431,
+                1523,
+                552
+              ],
+              "mean_px": 3.0,
+              "max_px": 3.0,
+              "signed_px": -3.0,
+              "hint": "model too small"
+            }
+          ]
+        },
+        "R02": {
+          "iou": 0.981,
+          "area_ratio": 0.9918,
+          "b_mean": 2.77,
+          "b_p95": 5.83,
+          "b_max": 14.14,
+          "zones": [
+            {
+              "box": [
+                792,
+                431,
+                1036,
+                552
+              ],
+              "mean_px": 4.0,
+              "max_px": 4.0,
+              "signed_px": -4.0,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                1036,
+                431,
+                1280,
+                552
+              ],
+              "mean_px": 4.0,
+              "max_px": 4.0,
+              "signed_px": -4.0,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                1280,
+                431,
+                1524,
+                552
+              ],
+              "mean_px": 4.0,
+              "max_px": 4.0,
+              "signed_px": -4.0,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                304,
+                68,
+                548,
+                189
+              ],
+              "mean_px": 3.7,
+              "max_px": 4.0,
+              "signed_px": -3.7,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                1768,
+                431,
+                2012,
+                552
+              ],
+              "mean_px": 3.7,
+              "max_px": 14.1,
+              "signed_px": -1.5,
+              "hint": "model too small"
+            }
+          ]
+        },
+        "D01": {
+          "iou": 0.9978,
+          "area_ratio": 1.0017,
+          "b_mean": 0.31,
+          "b_p95": 2.24,
+          "b_max": 10.3,
+          "zones": [
+            {
+              "box": [
+                1279,
+                68,
+                1523,
+                189
+              ],
+              "mean_px": 1.8,
+              "max_px": 2.8,
+              "signed_px": 1.8,
+              "hint": "model too large"
+            },
+            {
+              "box": [
+                549,
+                68,
+                792,
+                189
+              ],
+              "mean_px": 1.6,
+              "max_px": 7.3,
+              "signed_px": 1.3,
+              "hint": "model too large"
+            },
+            {
+              "box": [
+                1279,
+                189,
+                1523,
+                310
+              ],
+              "mean_px": 1.1,
+              "max_px": 10.3,
+              "signed_px": 1.1,
+              "hint": "model too large"
+            },
+            {
+              "box": [
+                792,
+                68,
+                1036,
+                189
+              ],
+              "mean_px": 0.7,
+              "max_px": 3.0,
+              "signed_px": -0.3,
+              "hint": "mixed"
+            },
+            {
+              "box": [
+                305,
+                431,
+                549,
+                552
+              ],
+              "mean_px": 0.6,
+              "max_px": 4.0,
+              "signed_px": 0.6,
+              "hint": "model too large"
+            }
+          ]
+        },
+        "uv_overlap": {
+          "overlap": 0.0,
+          "outside": 0.0,
+          "coverage": 0.414
+        },
+        "texel": {
+          "min": 145.5,
+          "max": 155.9,
+          "spread": 1.07
+        },
+        "uv": {
+          "area3d_m2": 73.9158,
+          "atlas_coverage": 0.415,
+          "texel_px_per_m_at_2k": 153.5
+        }
+      },
+      "checks": [
+        {
+          "id": "U01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "bbox 2.036 x 4.260 x 1.055 m vs target (None, None, None) (+-2%)"
+        },
+        {
+          "id": "U02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all scales 1.0"
+        },
+        {
+          "id": "U03",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "lowest z = 0.0000"
+        },
+        {
+          "id": "U06",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all meshes have UVs"
+        },
+        {
+          "id": "U07",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no empty material slots"
+        },
+        {
+          "id": "U08",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "15196 tris (S2 max 80000)"
+        },
+        {
+          "id": "U09",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "15196 tris (LOD0 target 15000-60000)"
+        },
+        {
+          "id": "U10",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "8 materials (max 8)"
+        },
+        {
+          "id": "U04",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 non-manifold edges ; 0 open edges"
+        },
+        {
+          "id": "U05",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "flipped 0, inverted 0 "
+        },
+        {
+          "id": "U16",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 degenerate faces/edges "
+        },
+        {
+          "id": "U11",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 loose verts/edges "
+        },
+        {
+          "id": "U12",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "n-gons 36/7411 faces = 0.5% (max 5%)"
+        },
+        {
+          "id": "N01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all names GROUP_Part_LP"
+        },
+        {
+          "id": "H01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no subsurf on plates / boxes / extrusions"
+        },
+        {
+          "id": "X01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 critical intersections"
+        },
+        {
+          "id": "R01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "iou 0.985 (min 0.92), boundary p95 5.4 px (max 6.0), mean 2.3, max 16.0 | worst: model too large +1px @u60-303 v431-552; model too small -1px @u1767-2011 v431-552; model too small -3px @u791-1035 v431-552"
+        },
+        {
+          "id": "R02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "iou 0.981 (min 0.92), boundary p95 5.8 px (max 8.0), mean 2.8, max 14.1 | worst: model too small -4px @u792-1036 v431-552; model too small -4px @u1036-1280 v431-552; model too small -4px @u1280-1524 v431-552"
+        },
+        {
+          "id": "D01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "iou 0.998 (min 0.80), boundary p95 2.2 px (max 16.0), mean 0.3, max 10.3 | worst: model too large +2px @u1279-1523 v68-189; model too large +1px @u549-792 v68-189; model too large +1px @u1279-1523 v189-310"
+        },
+        {
+          "id": "D02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "bbox change vs S1 on axes XY: 1.8% (max 4.0%)"
+        },
+        {
+          "id": "U13",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "UV_Bake: overlap 0.00%, outside 0-1 0.00%, coverage 41%"
+        },
+        {
+          "id": "U14",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "texel density 145.5-155.9 px/m at 2k (spread 1.07, max 2.5)"
+        }
+      ]
+    },
+    "3": {
+      "stage": "DETAIL",
+      "summary": {
+        "result": "PASS",
+        "blockers_failed": 0,
+        "warnings": 0
+      },
+      "inputs_hash": "aa44d528afac",
+      "time": "2026-10-01 18:06:54",
+      "metrics": {
+        "objects": 113,
+        "tris": 31048,
+        "dims": [
+          2.036,
+          4.2593,
+          1.0547
+        ],
+        "bbox_min": [
+          -1.018,
+          -2.2485,
+          0.0
+        ],
+        "top_tris": [
+          [
+            7344,
+            "BODY_Shell_HP"
+          ],
+          [
+            900,
+            "FLARE_1_R_HP"
+          ],
+          [
+            900,
+            "FLARE_1_L_HP"
+          ],
+          [
+            900,
+            "FLARE_0_R_HP"
+          ],
+          [
+            900,
+            "FLARE_0_L_HP"
+          ],
+          [
+            896,
+            "WHEEL_Tire_1_R_HP"
+          ],
+          [
+            896,
+            "WHEEL_Tire_1_L_HP"
+          ],
+          [
+            896,
+            "WHEEL_Tire_0_R_HP"
+          ],
+          [
+            896,
+            "WHEEL_Tire_0_L_HP"
+          ],
+          [
+            896,
+            "WHEEL_Rim_1_R_HP"
+          ]
+        ],
+        "materials": [
+          "MAT_BODY",
+          "MAT_CHROME",
+          "MAT_GLASS",
+          "MAT_LAMP",
+          "MAT_RED",
+          "MAT_RIM",
+          "MAT_TIRE",
+          "MAT_TRIM"
+        ],
+        "hygiene": {
+          "non_manifold": 0,
+          "boundary": 0,
+          "loose": 0,
+          "degenerate": 0,
+          "flipped": 0,
+          "inverted": 0,
+          "ngons": 170,
+          "quads": 14855,
+          "tris": 272,
+          "faces": 15297,
+          "ngon_ratio": 0.0111
+        },
+        "R01": {
+          "iou": 0.9845,
+          "area_ratio": 0.9939,
+          "b_mean": 2.28,
+          "b_p95": 5.28,
+          "b_max": 16.0,
+          "zones": [
+            {
+              "box": [
+                60,
+                431,
+                303,
+                552
+              ],
+              "mean_px": 3.7,
+              "max_px": 16.0,
+              "signed_px": 0.7,
+              "hint": "model too large"
+            },
+            {
+              "box": [
+                1767,
+                431,
+                2011,
+                552
+              ],
+              "mean_px": 3.4,
+              "max_px": 14.3,
+              "signed_px": -0.7,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                791,
+                431,
+                1035,
+                552
+              ],
+              "mean_px": 3.0,
+              "max_px": 3.0,
+              "signed_px": -3.0,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                1035,
+                431,
+                1279,
+                552
+              ],
+              "mean_px": 3.0,
+              "max_px": 3.0,
+              "signed_px": -3.0,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                1279,
+                431,
+                1523,
+                552
+              ],
+              "mean_px": 3.0,
+              "max_px": 3.0,
+              "signed_px": -3.0,
+              "hint": "model too small"
+            }
+          ]
+        },
+        "R02": {
+          "iou": 0.981,
+          "area_ratio": 0.9915,
+          "b_mean": 2.77,
+          "b_p95": 5.66,
+          "b_max": 14.14,
+          "zones": [
+            {
+              "box": [
+                792,
+                431,
+                1036,
+                552
+              ],
+              "mean_px": 4.0,
+              "max_px": 4.0,
+              "signed_px": -4.0,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                1036,
+                431,
+                1280,
+                552
+              ],
+              "mean_px": 4.0,
+              "max_px": 4.0,
+              "signed_px": -4.0,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                1280,
+                431,
+                1524,
+                552
+              ],
+              "mean_px": 4.0,
+              "max_px": 4.0,
+              "signed_px": -4.0,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                304,
+                68,
+                548,
+                189
+              ],
+              "mean_px": 3.7,
+              "max_px": 4.0,
+              "signed_px": -3.7,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                1768,
+                431,
+                2012,
+                552
+              ],
+              "mean_px": 3.7,
+              "max_px": 14.1,
+              "signed_px": -1.5,
+              "hint": "model too small"
+            }
+          ]
+        },
+        "D01": {
+          "iou": 0.9996,
+          "area_ratio": 0.9996,
+          "b_mean": 0.06,
+          "b_p95": 1.0,
+          "b_max": 3.61,
+          "zones": [
+            {
+              "box": [
+                549,
+                189,
+                792,
+                310
+              ],
+              "mean_px": 0.9,
+              "max_px": 1.0,
+              "signed_px": -0.9,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                1766,
+                189,
+                2010,
+                310
+              ],
+              "mean_px": 0.3,
+              "max_px": 1.0,
+              "signed_px": -0.3,
+              "hint": "mixed"
+            },
+            {
+              "box": [
+                62,
+                310,
+                305,
+                431
+              ],
+              "mean_px": 0.2,
+              "max_px": 1.0,
+              "signed_px": -0.2,
+              "hint": "mixed"
+            },
+            {
+              "box": [
+                305,
+                189,
+                549,
+                310
+              ],
+              "mean_px": 0.2,
+              "max_px": 1.0,
+              "signed_px": -0.2,
+              "hint": "mixed"
+            },
+            {
+              "box": [
+                1279,
+                189,
+                1523,
+                310
+              ],
+              "mean_px": 0.2,
+              "max_px": 3.6,
+              "signed_px": -0.2,
+              "hint": "mixed"
+            }
+          ]
+        }
+      },
+      "checks": [
+        {
+          "id": "U01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "bbox 2.036 x 4.259 x 1.055 m vs target (None, None, None) (+-2%)"
+        },
+        {
+          "id": "U02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all scales 1.0"
+        },
+        {
+          "id": "U03",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "lowest z = 0.0000"
+        },
+        {
+          "id": "U06",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all meshes have UVs"
+        },
+        {
+          "id": "U07",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no empty material slots"
+        },
+        {
+          "id": "U08",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "31048 tris (S3 max 150000)"
+        },
+        {
+          "id": "U10",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "8 materials (max 8)"
+        },
+        {
+          "id": "U04",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 non-manifold edges ; 0 open edges"
+        },
+        {
+          "id": "U05",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "flipped 0, inverted 0 "
+        },
+        {
+          "id": "U16",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "0 degenerate faces/edges "
+        },
+        {
+          "id": "U11",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 loose verts/edges "
+        },
+        {
+          "id": "U12",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "n-gons 170/15297 faces = 1.1% (max 5%)"
+        },
+        {
+          "id": "N01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all names GROUP_Part_HP"
+        },
+        {
+          "id": "H01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no subsurf on plates / boxes / extrusions"
+        },
+        {
+          "id": "X01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 critical intersections"
+        },
+        {
+          "id": "R01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "iou 0.985 (min 0.92), boundary p95 5.3 px (max 6.0), mean 2.3, max 16.0 | worst: model too large +1px @u60-303 v431-552; model too small -1px @u1767-2011 v431-552; model too small -3px @u791-1035 v431-552"
+        },
+        {
+          "id": "R02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "iou 0.981 (min 0.93), boundary p95 5.7 px (max 6.0), mean 2.8, max 14.1 | worst: model too small -4px @u792-1036 v431-552; model too small -4px @u1036-1280 v431-552; model too small -4px @u1280-1524 v431-552"
+        },
+        {
+          "id": "D01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "iou 1.000 (min 0.95), boundary p95 1.0 px (max 4.0), mean 0.1, max 3.6 | worst: model too small -1px @u549-792 v189-310; mixed -0px @u1766-2010 v189-310; mixed -0px @u62-305 v310-431"
+        },
+        {
+          "id": "D02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "bbox change vs S2 on axes XY: 0.0% (max 1.5%)"
+        },
+        {
+          "id": "U15",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "hero glb: exported 114 objs / reimported 114; materials 8/8"
+        }
+      ]
+    },
+    "4": {
+      "stage": "GAME",
+      "summary": {
+        "result": "PASS",
+        "blockers_failed": 0,
+        "warnings": 0
+      },
+      "inputs_hash": "aa44d528afac",
+      "time": "2026-10-01 18:23:09",
+      "metrics": {
+        "bake": {
+          "size": 2048,
+          "device": "OPTIX",
+          "seconds_per_map": {
+            "base": 178.2,
+            "normal": 183.3,
+            "ao": 198.9,
+            "rough": 181.7,
+            "metal": 197.8
+          },
+          "extrusion_m": 0.0284,
+          "ao_distance_m": 0.3792,
+          "base_mean": [
+            0.18,
+            0.076,
+            0.086
+          ],
+          "normal_mean": [
+            0.498,
+            0.5,
+            0.945
+          ],
+          "seconds": 941.0
+        },
+        "lod_tris": {
+          "0": 15196,
+          "1": 7598,
+          "2": 3798
+        },
+        "textures": {
+          "base": "output\\VEH_Honda_NSX_Widebody\\textures\\T_VEH_Honda_NSX_Widebody_base.png",
+          "orm": "output\\VEH_Honda_NSX_Widebody\\textures\\T_VEH_Honda_NSX_Widebody_orm.png",
+          "normal": "output\\VEH_Honda_NSX_Widebody\\textures\\T_VEH_Honda_NSX_Widebody_normal.png"
+        },
+        "glb": {
+          "0": {
+            "bytes": 4757212,
+            "nodes": 7,
+            "meshes": 6,
+            "primitives": 6,
+            "materials": 1,
+            "textures": 3,
+            "images": [
+              [
+                "T_VEH_Honda_NSX_Widebody_normal",
+                2048,
+                2048
+              ],
+              [
+                "T_VEH_Honda_NSX_Widebody_orm",
+                2048,
+                2048
+              ],
+              [
+                "T_VEH_Honda_NSX_Widebody_base",
+                2048,
+                2048
+              ]
+            ],
+            "tris": 15896,
+            "animations": 0,
+            "skins": 0,
+            "node_names": null
+          },
+          "1": {
+            "bytes": 4456544,
+            "nodes": 2,
+            "meshes": 1,
+            "primitives": 1,
+            "materials": 1,
+            "textures": 3,
+            "images": [
+              [
+                "T_VEH_Honda_NSX_Widebody_normal",
+                2048,
+                2048
+              ],
+              [
+                "T_VEH_Honda_NSX_Widebody_orm",
+                2048,
+                2048
+              ],
+              [
+                "T_VEH_Honda_NSX_Widebody_base",
+                2048,
+                2048
+              ]
+            ],
+            "tris": 7598,
+            "animations": 0,
+            "skins": 0,
+            "node_names": null
+          },
+          "2": {
+            "bytes": 4319120,
+            "nodes": 2,
+            "meshes": 1,
+            "primitives": 1,
+            "materials": 1,
+            "textures": 3,
+            "images": [
+              [
+                "T_VEH_Honda_NSX_Widebody_normal",
+                2048,
+                2048
+              ],
+              [
+                "T_VEH_Honda_NSX_Widebody_orm",
+                2048,
+                2048
+              ],
+              [
+                "T_VEH_Honda_NSX_Widebody_base",
+                2048,
+                2048
+              ]
+            ],
+            "tris": 3798,
+            "animations": 0,
+            "skins": 0,
+            "node_names": null
+          }
+        },
+        "uv_overlap": {
+          "overlap": 0.0,
+          "outside": 0.0,
+          "coverage": 0.414
+        },
+        "texel": {
+          "min": 153.5,
+          "max": 153.5,
+          "spread": 1.0
+        },
+        "hygiene": {
+          "non_manifold": 0,
+          "boundary": 0,
+          "loose": 0,
+          "degenerate": 0,
+          "flipped": 0,
+          "inverted": 0,
+          "ngons": 36,
+          "quads": 7247,
+          "tris": 128,
+          "faces": 7411,
+          "ngon_ratio": 0.0049
+        },
+        "objects": 1,
+        "tris": 15196,
+        "dims": [
+          2.036,
+          4.2598,
+          1.0547
+        ],
+        "files": {
+          "0": "output\\VEH_Honda_NSX_Widebody\\glb\\VEH_Honda_NSX_Widebody_LOD0.glb",
+          "1": "output\\VEH_Honda_NSX_Widebody\\glb\\VEH_Honda_NSX_Widebody_LOD1.glb",
+          "2": "output\\VEH_Honda_NSX_Widebody\\glb\\VEH_Honda_NSX_Widebody_LOD2.glb"
+        },
+        "engine": "godot"
+      },
+      "checks": [
+        {
+          "id": "G01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "LOD tris 15196 / 7598 / 3798 (targets x0.5 x0.25 +20%)"
+        },
+        {
+          "id": "G02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "5 colliders (godot naming), faces [6, 56, 132, 250, 250] (max 255); missing []"
+        },
+        {
+          "id": "G03",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "textures {'base': (2048, 2048), 'orm': (2048, 2048), 'normal': (2048, 2048)} (want 2048), normal mean [0.498, 0.5, 0.945] (tangent ~0.5/0.5/1)"
+        },
+        {
+          "id": "G04",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "LOD0 glb 4.76 MB (max 12 MB)"
+        },
+        {
+          "id": "G05",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "glb: 6 meshes, 15896 tris (expect 15896), 1 materials, images [('T_VEH_Honda_NSX_Widebody_normal', 2048, 2048), ('T_VEH_Honda_NSX_Widebody_orm', 2048, 2048), ('T_VEH_Honda_NSX_Widebody_base', 2048, 2048)]"
+        },
+        {
+          "id": "G06",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "3 game objects named *_LOD<n>"
+        },
+        {
+          "id": "U13",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "UVMap: overlap 0.00%, outside 0-1 0.00%, coverage 41%"
+        },
+        {
+          "id": "U14",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "texel density 153.5-153.5 px/m at 2k (spread 1.0, max 2.5)"
+        },
+        {
+          "id": "U04",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 non-manifold edges ; 0 open edges"
+        },
+        {
+          "id": "U05",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "flipped 0, inverted 0 "
+        },
+        {
+          "id": "U16",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 degenerate faces/edges "
+        },
+        {
+          "id": "U11",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 loose verts/edges "
+        },
+        {
+          "id": "U12",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "n-gons 36/7411 faces = 0.5% (max 5%)"
+        },
+        {
+          "id": "U15",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "LOD0 glb: exported 7 objs / reimported 7; materials 1/1"
+        }
+      ]
+    }
+  },
+  "blender": "5.2.1 LTS",
+  "summary": {
+    "result": "PASS",
+    "stages": {
+      "1": "PASS",
+      "2": "PASS",
+      "3": "PASS",
+      "4": "PASS"
+    },
+    "blockers_failed": 0
+  },
+  "metrics": {
+    "tris_s1": 2868,
+    "tris_low": 15196,
+    "tris_high": 31048,
+    "dims": [
+      2.0,
+      4.2598,
+      1.0562
+    ],
+    "game": {
+      "0": 15196,
+      "1": 7598,
+      "2": 3798
+    }
+  },
+  "uncertain": [
+    "UNCERTAIN_BodyWidths",
+    "UNCERTAIN_Underbody",
+    "UNCERTAIN_Interior",
+    "UNCERTAIN_WingEndplates",
+    "UNCERTAIN_Exhaust"
+  ]
+}

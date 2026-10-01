@@ -58,7 +58,12 @@ def array(ob, count, offset=(1, 0, 0), relative=True):
 
 
 def boolean(ob, cutter, op="DIFFERENCE", apply=False, hide_cutter=True):
-    """Boolean with a cutter object (windows, doors, holes). apply=True bakes it."""
+    """Boolean with a cutter object (windows, doors, holes). apply=True bakes it.
+    A cutter without material gets the target's first material, and apply=True drops empty /
+    unused slots afterwards, so booleans never create empty slots (lesson 18, check U07)."""
+    if ob.data.materials and (not cutter.data.materials or all(m is None for m in cutter.data.materials)):
+        cutter.data.materials.clear()
+        cutter.data.materials.append(ob.data.materials[0])
     m = ob.modifiers.new("Boolean_" + cutter.name, "BOOLEAN")
     m.operation = op
     m.object = cutter
@@ -68,7 +73,26 @@ def boolean(ob, cutter, op="DIFFERENCE", apply=False, hide_cutter=True):
         cutter.display_type = "WIRE"
     if apply:
         apply_all(ob)
+        clean_slots(ob)
     return m
+
+
+def clean_slots(ob):
+    """Remove empty and unused material slots, remapping face indices (context-free)."""
+    me = ob.data
+    used = {p.material_index for p in me.polygons}
+    keep = [i for i, m in enumerate(me.materials) if m is not None and i in used]
+    if len(keep) == len(me.materials):
+        return ob
+    mats = [me.materials[i] for i in keep]
+    remap = {old: new for new, old in enumerate(keep)}
+    idx = [remap.get(p.material_index, 0) for p in me.polygons]
+    me.materials.clear()
+    for m in mats:
+        me.materials.append(m)
+    for p, i in zip(me.polygons, idx):
+        p.material_index = i
+    return ob
 
 
 def apply_all(ob):

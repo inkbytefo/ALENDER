@@ -3,8 +3,18 @@
 wb.py - Blender Workbench command line (run from the repository root with normal python).
 
   python wb.py doctor                          check Blender / Pillow / folders
-  python wb.py new  <ASSET> [--category C]     scaffold projects/<ASSET>/ from templates/project
-  python wb.py build <ASSET>                   run projects/<ASSET>/build.py headless
+  python wb.py new  <ASSET> [--category C] [--budget B]   scaffold projects/<ASSET>/ (staged pipeline)
+  python wb.py build <ASSET> [--stage N|--from N|--until N] [--no-bake] [--force]
+                                               run projects/<ASSET>/build.py headless (stages S1-S4)
+  python wb.py gate <ASSET> [N]                PASS/FAIL of stages 1..N from report.json (exit code)
+  python wb.py mask <ASSET> [--seed U V] [--thr 235] [--max-hole 400] [--fill U,V ...]
+                                               photo silhouette on a plain light background -> ref/REF_MASK.png
+  python wb.py snap <ASSET> <LANDMARK> [--radius 6] [--open]   suggest edge corrections for a px polyline
+  python wb.py profile <ASSET> U0 U1 V0 V1 [--side top|bottom] [--step 10] [--tol 1.5] [--photo-thr 150]
+                                               measured edge polyline from ref/REF_MASK.png (paste into landmarks)
+  python wb.py glb <file.glb>                  structural check of a glb (tris, meshes, materials, images)
+  python wb.py engine-check <file.glb>         glb check + Godot headless import if $GODOT_EXECUTABLE is set
+  python wb.py regress [ASSET ...] [--update] [--no-build]    rebuild + compare metrics with the baseline
   python wb.py run  <script.py> [-- args]      run any bpy script headless (workbench importable)
   python wb.py list                            projects + last report result
   python wb.py grid <img> [--step 20]          labelled grid copy of an image  (-> *_grid.png)
@@ -61,6 +71,10 @@ def run_script(script, args=()):
     return subprocess.run(cmd, env=env).returncode
 
 
+BUDGET_OF = {"vehicle": "hero_vehicle", "architecture": "building", "character": "character",
+             "prop": "large_prop", "environment": "modular", "animation": "large_prop"}
+
+
 def cmd_new(a):
     src = os.path.join(ROOT, "templates", "project")
     dst = os.path.join(ROOT, "projects", a.asset)
@@ -70,6 +84,7 @@ def cmd_new(a):
     for p in glob.glob(os.path.join(dst, "**", "*.*"), recursive=True):
         if p.endswith((".py", ".md")):
             t = open(p, encoding="utf-8").read().replace("__ASSET__", a.asset).replace("__CATEGORY__", a.category)
+            t = t.replace("__BUDGET__", a.budget or BUDGET_OF.get(a.category, "large_prop"))
             open(p, "w", encoding="utf-8").write(t)
     os.makedirs(os.path.join(dst, "ref"), exist_ok=True)
     print(f"[wb] created projects/{a.asset}/  -> put photos in ref/, fill project.md, measure landmarks.py")
@@ -84,6 +99,8 @@ def cmd_list(a):
             r = json.load(open(rep, encoding="utf-8"))
             m = r.get("metrics", {})
             res = f"{r['summary']['result']:5} tris={m.get('tris_high', m.get('tris', '?'))}"
+            if "stages" in r:
+                res += "  " + " ".join(f"S{k}:{v}" for k, v in r["summary"].get("stages", {}).items())
         print(f"  {name:32} {res}")
 
 
@@ -99,11 +116,177 @@ def cmd_doctor(a):
         print(f"{d:8}:", "ok" if os.path.isdir(os.path.join(ROOT, d)) else "MISSING")
 
 
+def _landmarks(asset):
+    pdir = os.path.join(ROOT, "projects", asset)
+    sys.path.insert(0, pdir)
+    import landmarks
+    return pdir, landmarks
+
+
+def cmd_mask(a):
+    from PIL import Image
+    from workbench.host import imgtools as T
+    pdir, L = _landmarks(a.asset)
+    seed = a.seed or getattr(L, "ANCHOR_PX")
+    fill = [tuple(float(x) for x in f.split(",")) for f in a.fill]
+    photo = os.path.join(pdir, "ref", "REAL_REFERENCE.png")
+    out = os.path.join(pdir, "ref", "REF_MASK.png")
+    r = T.photo_mask(photo, out, seed, a.thr, a.sat, a.max_hole, fill)
+    prev = os.path.join(ROOT, "output", a.asset, "work", "ref_mask_check.png")
+    os.makedirs(os.path.dirname(prev), exist_ok=True)
+    ph = Image.open(photo).convert("RGB")
+    tint = Image.new("RGB", ph.size, (255, 0, 255))
+    Image.composite(Image.blend(ph, tint, 0.45), ph, Image.open(out).convert("L")).save(prev)
+    print(f"[wb] {r}")
+    print(f"[wb] LOOK at {os.path.relpath(prev, ROOT)} (magenta = mask) before trusting REF_MASK.png")
+
+
+def cmd_snap(a):
+    import numpy as np
+    from PIL import Image
+    from workbench import silhouette
+    from workbench.host import imgtools as T
+    pdir, L = _landmarks(a.asset)
+    poly = getattr(L, a.landmark)
+    photo = os.path.join(pdir, "ref", "REAL_REFERENCE.png")
+    gray = np.asarray(Image.open(photo).convert("L"), np.float32)
+    sug = silhouette.snap(gray, poly, a.radius, closed=not a.open)
+    print(f"  {'i':>3} {'u':>7} {'v':>7} {'du':>5} {'dv':>5} {'edge':>6}  suggestion")
+    for g in sug:
+        if not g["ok"]:
+            tip = "no clear edge - check by eye"
+        elif abs(g["shift"]) < 1:
+            tip = "keep"
+        else:
+            tip = f"-> ({g['u'] + g['du']:.0f}, {g['v'] + g['dv']:.0f})"
+        print(f"  {g['i']:>3} {g['u']:>7.1f} {g['v']:>7.1f} {g['du']:>5.1f} {g['dv']:>5.1f} {g['strength']:>6.1f}  {tip}")
+    out = os.path.join(ROOT, "output", a.asset, "work", f"snap_{a.landmark}.png")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    print("[wb] sheet:", T.snap_sheet(photo, poly, out, sug), "(cyan = landmark, yellow = suggested edge)")
+
+
+def cmd_profile(a):
+    import numpy as np
+    from PIL import Image
+    from workbench import silhouette
+    pdir, L = _landmarks(a.asset)
+    mp = os.path.join(pdir, "ref", "REF_MASK.png")
+    if a.photo_thr:        # 50 % rule: edge = where the darkest channel crosses mid-way object <-> background
+        img = np.asarray(Image.open(os.path.join(pdir, "ref", "REAL_REFERENCE.png")).convert("RGB"))
+        mask = img.min(axis=2) < a.photo_thr
+    elif os.path.isfile(mp):
+        mask = np.asarray(Image.open(mp).convert("L")) > 127
+    else:
+        sys.exit(f"[wb] no {mp}: run python wb.py mask {a.asset} first, or pass --photo-thr")
+    n = max(2, int(round((a.u1 - a.u0) / a.step)) + 1)
+    us = [a.u0 + (a.u1 - a.u0) * i / (n - 1) for i in range(n)]
+    pts = silhouette.edge_profile(mask, us, a.v0, a.v1, a.side)
+    miss = [round(u) for u, v in pts if v is None]
+    pts = [(round(u), v) for u, v in pts if v is not None]
+    simp = silhouette.simplify(pts, a.tol) if len(pts) > 2 else pts
+    print(f"# {a.side} edge of {'photo min-channel < %d' % a.photo_thr if a.photo_thr else 'REF_MASK'}, u {a.u0:.0f}-{a.u1:.0f}, v window {a.v0:.0f}-{a.v1:.0f}, "
+          f"simplified to {a.tol} px ({len(pts)} -> {len(simp)} points)" + (f"; empty columns {miss}" if miss else ""))
+    print("[" + ", ".join(f"({u:.0f}, {v:.0f})" for u, v in simp) + "]")
+
+
+def cmd_godot(glb):
+    exe = os.environ.get("GODOT_EXECUTABLE") or shutil.which("godot")
+    if not exe:
+        print("[wb] engine-check: Godot not found (set GODOT_EXECUTABLE) - structural glb check only")
+        return 0
+    gd = os.path.join(ROOT, "scripts", "godot_import_check.gd")
+    r = subprocess.run([exe, "--headless", "--script", gd, "--", os.path.abspath(glb)],
+                       capture_output=True, text=True)
+    print(r.stdout[-3000:], r.stderr[-2000:])
+    return r.returncode
+
+
+def _flat_metrics(rep):
+    """Numbers compared by the regression test (legacy and staged reports)."""
+    out = {"result": rep["summary"]["result"]}
+    m = rep.get("metrics", {})
+    for k in ("tris_low", "tris_high", "tris_s1"):
+        if m.get(k) is not None:
+            out[k] = m[k]
+    if m.get("dims"):
+        out["dims"] = [round(x, 3) for x in m["dims"]]
+    for k, sec in rep.get("stages", {}).items():
+        sm = sec.get("metrics", {})
+        out[f"s{k}_tris"] = sm.get("tris")
+        for key in ("R01", "R02"):
+            if isinstance(sm.get(key), dict):
+                out[f"s{k}_{key}_iou"] = sm[key]["iou"]
+        if sm.get("lod_tris"):
+            out[f"s{k}_lod_tris"] = {str(n): t for n, t in sm["lod_tris"].items()}
+    return out
+
+
+def _close(a, b):
+    if isinstance(a, bool) or isinstance(b, bool):
+        return a == b
+    if isinstance(a, (int, float)) and isinstance(b, (int, float)):
+        return a == b if isinstance(b, int) and isinstance(a, int) else abs(a - b) <= max(0.002, 0.005 * abs(b))
+    if isinstance(a, list) and isinstance(b, list):
+        return len(a) == len(b) and all(_close(x, y) for x, y in zip(a, b))
+    if isinstance(a, dict) and isinstance(b, dict):
+        return a.keys() == b.keys() and all(_close(a[k], b[k]) for k in a)
+    return a == b
+
+
+def cmd_regress(a):
+    """Clean rebuild of projects + comparison of their numbers with tests/regress_baseline.json.
+    Run after changing workbench/ (a library change must not silently change old assets)."""
+    base_p = os.path.join(ROOT, "tests", "regress_baseline.json")
+    base = json.load(open(base_p, encoding="utf-8")) if os.path.isfile(base_p) else {}
+    assets = a.assets or sorted(base)
+    if not assets:
+        sys.exit("[regress] no baseline yet: python wb.py regress <ASSET ...> --update")
+    fails, now = [], {}
+    for asset in assets:
+        if not a.no_build:
+            print(f"[regress] building {asset} ...", flush=True)
+            if run_script(os.path.join(ROOT, "projects", asset, "build.py"), ["--force"]) != 0:
+                fails.append(f"{asset}: build crashed")
+                continue
+        rep = json.load(open(os.path.join(ROOT, "projects", asset, "report.json"), encoding="utf-8"))
+        now[asset] = _flat_metrics(rep)
+        if asset in base and not a.update:
+            for k in sorted(set(base[asset]) | set(now[asset])):
+                if not _close(now[asset].get(k), base[asset].get(k)):
+                    fails.append(f"{asset}.{k}: {base[asset].get(k)} -> {now[asset].get(k)}")
+    if a.update:
+        base.update(now)
+        os.makedirs(os.path.dirname(base_p), exist_ok=True)
+        json.dump(base, open(base_p, "w", encoding="utf-8"), indent=1, sort_keys=True)
+        print(f"[regress] baseline updated: {', '.join(now)}")
+        return 0
+    for f in fails:
+        print("[regress] DIFF", f)
+    print(f"[regress] {len(assets)} assets: {'PASS' if not fails else str(len(fails)) + ' differences'}")
+    return 1 if fails else 0
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sp = ap.add_subparsers(dest="cmd", required=True)
     p = sp.add_parser("new"); p.add_argument("asset"); p.add_argument("--category", default="prop")
-    p = sp.add_parser("build"); p.add_argument("asset")
+    p.add_argument("--budget", help="key of workbench.tables.BUDGETS (default from --category)")
+    p = sp.add_parser("build"); p.add_argument("asset"); p.add_argument("rest", nargs=argparse.REMAINDER)
+    p = sp.add_parser("gate"); p.add_argument("asset"); p.add_argument("stage", nargs="?", type=int)
+    p = sp.add_parser("mask"); p.add_argument("asset"); p.add_argument("--seed", nargs=2, type=float)
+    p.add_argument("--thr", type=int, default=235); p.add_argument("--sat", type=int, default=40)
+    p.add_argument("--max-hole", type=int, default=400); p.add_argument("--fill", nargs="*", default=[])
+    p = sp.add_parser("snap"); p.add_argument("asset"); p.add_argument("landmark")
+    p.add_argument("--radius", type=float, default=6); p.add_argument("--open", action="store_true")
+    p = sp.add_parser("profile"); p.add_argument("asset")
+    for k in ("u0", "u1", "v0", "v1"):
+        p.add_argument(k, type=float)
+    p.add_argument("--side", default="bottom", choices=("top", "bottom")); p.add_argument("--step", type=float, default=10)
+    p.add_argument("--tol", type=float, default=1.5); p.add_argument("--photo-thr", type=int)
+    p = sp.add_parser("glb"); p.add_argument("file")
+    p = sp.add_parser("engine-check"); p.add_argument("file")
+    p = sp.add_parser("regress"); p.add_argument("assets", nargs="*"); p.add_argument("--update", action="store_true")
+    p.add_argument("--no-build", action="store_true")
     p = sp.add_parser("run"); p.add_argument("script"); p.add_argument("rest", nargs=argparse.REMAINDER)
     sp.add_parser("list"); sp.add_parser("doctor"); sp.add_parser("test")
     p = sp.add_parser("present"); p.add_argument("asset"); p.add_argument("rest", nargs=argparse.REMAINDER)
@@ -121,7 +304,37 @@ def main():
     if a.cmd == "new":
         cmd_new(a)
     elif a.cmd == "build":
-        sys.exit(run_script(os.path.join(ROOT, "projects", a.asset, "build.py")))
+        from workbench import gate
+        rest = [x for x in a.rest if x != "--"]
+        if rest and not gate.is_pipeline(a.asset):
+            print("[wb] note: legacy project (stage1.py/stage2.py) - stage flags are ignored")
+        rc = run_script(os.path.join(ROOT, "projects", a.asset, "build.py"), rest)
+        if rc == 0 and gate.is_pipeline(a.asset):
+            gate.print_rows(a.asset, gate.evaluate(a.asset))
+        sys.exit(rc)
+    elif a.cmd == "gate":
+        from workbench import gate
+        if not gate.is_pipeline(a.asset):
+            sys.exit(f"[wb] {a.asset} is a legacy project (no staged pipeline) - see its report.json")
+        ok = gate.print_rows(a.asset, gate.evaluate(a.asset, a.stage))
+        print(f"[wb] gate {a.asset} S1..S{a.stage or 'last'}: {'PASS' if ok else 'FAIL'}")
+        sys.exit(0 if ok else 1)
+    elif a.cmd == "mask":
+        cmd_mask(a)
+    elif a.cmd == "snap":
+        cmd_snap(a)
+    elif a.cmd == "profile":
+        cmd_profile(a)
+    elif a.cmd in ("glb", "engine-check"):
+        from workbench import glbinfo
+        info = glbinfo.read(a.file)
+        names = info.pop("node_names")
+        print(json.dumps(info, indent=1))
+        print("nodes:", ", ".join(names[:40]) + (" ..." if len(names) > 40 else ""))
+        if a.cmd == "engine-check":
+            sys.exit(cmd_godot(a.file))
+    elif a.cmd == "regress":
+        sys.exit(cmd_regress(a))
     elif a.cmd == "run":
         rest = [x for x in a.rest if x != "--"]
         sys.exit(run_script(a.script, rest))

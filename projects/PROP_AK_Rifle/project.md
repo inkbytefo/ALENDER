@@ -27,7 +27,19 @@ It is also a different variant (milled AK-47 Type 3 with wooden grip), so it is 
 ## References
 - ref/REAL_REFERENCE.png   primary truth (photo, rotated 90 deg CW from the portrait original
   ref/REF_ORIGINAL_vertical.png)  side: RIGHT (muzzle on image right), 1440x720 px
+- ref/REF_MASK.png  photo silhouette, checked by eye (work/ref_mask_check.png):
+  `python wb.py mask PROP_AK_Rifle --fill 760,258 745,262 45,408 740,248 815,250`
+  (fill points = chrome bolt-carrier glare and butt-plate glare that read as background)
 - no cheatsheet.
+
+## Staged pipeline migration (2026-09-29) — reference implementation of docs/01
+targets: game (Godot glb) + render. budget key hero_prop. All four stages gate PASS.
+Landmarks MEASURED on the photo in v2/v3 (the eye-read v1 values were 3-33 px off, lesson 33):
+HG_LOWER_BOT, STOCK_BOT, COVER_TOP (wb.py profile on REF_MASK / 50 % rule), MAG_REAR / MAG_FRONT
+(edge rows, arcs least-squares fitted: residual 1.3 / 0.7 px), MAG_FLOOR_LINE (lowest point 851,617).
+Added: REAR_SIGHT_POST (missing upright), REAR_SIGHT_BASE bottom 263 -> 268 (no gap in the photo).
+Builder fix: FSB_Body is the outline BELOW the ear base (v1 `min()` bug, lesson 37).
+Still eye-read: everything else (receiver, grip, controls, barrel radii, gas block, sights).
 
 ## Scale & measurements
 - scale: 1598 px/m from overall length 1406 px (butt-plate heel u=26 -> brake tip u=1432) = 0.880 m
@@ -40,9 +52,11 @@ It is also a different variant (milled AK-47 Type 3 with wooden grip), so it is 
 - key dimensions: L 0.880 x W ~0.07 (charging handle) x H ~0.255 m (rear sight top -> magazine heel).
 
 ## Style / budget
-STYLE=realistic_game (first/third-person hero weapon)
-Stage 1 LOW: < 6k tris   Stage 2 HIGH: 20k - 45k tris   materials <= 4
+STYLE=realistic_game (first/third-person hero weapon), CATEGORY hero_prop (tables.BUDGETS)
+S1 PRIMITIVE < 1.5k   S2 LOWPOLY = LOD0 4k-15k   S3 DETAIL < 60k   materials <= 4
 (MAT_STEEL_DARK, MAT_STEEL_BRIGHT (bolt carrier), MAT_WOOD_LAMINATE, MAT_POLYMER)
+S4: one baked material MAT_PROP_AK_Rifle_Baked (2048 base / ORM / normal), LOD1 50 %, LOD2 25 %,
+convex hulls per part (receiver, barrel, woodwork, buttstock, grip, magazine), Godot naming.
 
 ## Part breakdown (primary -> secondary -> tertiary)
 | Part | builder | approx size | LOD notes |
@@ -63,5 +77,7 @@ Stage 1 LOW: < 6k tris   Stage 2 HIGH: 20k - 45k tris   materials <= 4
 - the rear sight leaf / slider detail is simplified.
 
 ## Deliverables
-output/PROP_AK_Rifle/blend/PROP_AK_Rifle_00_SETUP ... _05_FINAL_GEOMETRY, PROP_AK_Rifle.blend
-output/PROP_AK_Rifle/glb/PROP_AK_Rifle.glb, output/PROP_AK_Rifle/renders/, projects/PROP_AK_Rifle/report.json
+output/PROP_AK_Rifle/blend/PROP_AK_Rifle_S0_SETUP ... _S4_GAME.blend, PROP_AK_Rifle.blend (hero S3)
+output/PROP_AK_Rifle/glb/PROP_AK_Rifle_LOD0..2.glb (game), PROP_AK_Rifle_hero.glb (S3), textures/
+output/PROP_AK_Rifle/work/s1..s4 (gate + review images), projects/PROP_AK_Rifle/report.json
+(older files PROP_AK_Rifle.glb / _game.glb / renders/ are from the legacy two-stage build)

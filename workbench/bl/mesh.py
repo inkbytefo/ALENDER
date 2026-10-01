@@ -38,6 +38,8 @@ def _ref(ref):
 
 # ----------------------------------------------------------------------------- core
 def box_uv(bm, scale=0.5):
+    """Box projection, `scale` UV units per metre. Continuous (no % 1 wrap: a wrapped face would
+    stretch across the whole texture - lesson 28); tiling textures repeat on their own."""
     uv = bm.loops.layers.uv.verify()
     for f in bm.faces:
         n = f.normal
@@ -45,11 +47,12 @@ def box_uv(bm, scale=0.5):
         a, b = [(1, 2), (0, 2), (0, 1)][ax]
         for lp in f.loops:
             co = lp.vert.co
-            lp[uv].uv = ((co[a] * scale) % 1.0, (co[b] * scale) % 1.0)
+            lp[uv].uv = (co[a] * scale, co[b] * scale)
 
 
-def finish(name, bm, collection, mat=None, smooth=True, sharp_angle=40.0, props=None):
-    """bmesh -> object: UVs, outward normals, auto-sharp edges, material, idempotent name."""
+def finish(name, bm, collection, mat=None, smooth=True, sharp_angle=40.0, props=None, builder=None):
+    """bmesh -> object: UVs, outward normals, auto-sharp edges, material, idempotent name.
+    builder (e.g. "plate") is stored as ob["wb_builder"] for the smoothing-policy check H01."""
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-6)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     box_uv(bm)
@@ -68,6 +71,8 @@ def finish(name, bm, collection, mat=None, smooth=True, sharp_angle=40.0, props=
     coll(collection).objects.link(ob)
     if mat is not None:
         me.materials.append(bpy.data.materials[mat])
+    if builder:
+        ob["wb_builder"] = builder
     for k, v in (props or {}).items():
         ob[k] = v
     return ob
@@ -108,13 +113,13 @@ def box(name, collection, center, size, mat=None, rot=None, **kw):
     if rot is not None:
         bmesh.ops.rotate(bm, verts=bm.verts, cent=(0, 0, 0), matrix=rot)
     bmesh.ops.translate(bm, vec=Vector(center), verts=bm.verts)
-    return finish(name, bm, collection, mat, smooth=False, **kw)
+    return finish(name, bm, collection, mat, smooth=False, **{"builder": "box", **kw})
 
 
 def cyl(name, collection, p0, p1, r, segs=12, mat=None, r1=None, caps=True, **kw):
     """Cylinder (or cone frustum when r1 given) from p0 to p1."""
     return tube(name, collection, [p0, p1], r if r1 is None else [r, r1], segs, mat,
-                smooth_path=False, caps=caps, **kw)
+                smooth_path=False, caps=caps, **{"builder": "cyl", **kw})
 
 
 def tube(name, collection, points, r, segs=12, mat=None, smooth_path=True, samples=4,
@@ -157,7 +162,7 @@ def tube(name, collection, points, r, segs=12, mat=None, smooth_path=True, sampl
     if caps:
         bm.faces.new(list(reversed(rings[0])))
         bm.faces.new(rings[-1])
-    return finish(name, bm, collection, mat, **kw)
+    return finish(name, bm, collection, mat, **{"builder": "tube", **kw})
 
 
 def helix(p0, p1, radius, turns, steps_per_turn=16, start=0.0, end=1.0):
@@ -174,7 +179,7 @@ def helix(p0, p1, radius, turns, steps_per_turn=16, start=0.0, end=1.0):
     return pts
 
 
-def lathe(name, collection, center, profile, segs=24, mat=None, closed=True, axis="X", **kw):
+def lathe(name, collection, center, profile, segs=24, mat=None, closed=True, axis="X", caps=True, **kw):
     """Revolve profile [(radius, axial_offset), ...] around axis X|Y|Z through center.
     closed=True joins last profile point back to the first (solid sections: tyres, rims)."""
     c = Vector(center)
@@ -193,10 +198,10 @@ def lathe(name, collection, center, profile, segs=24, mat=None, closed=True, axi
         a_, b_ = rings[i], rings[(i + 1) % m]
         for k in range(segs):
             bm.faces.new((a_[k], a_[(k + 1) % segs], b_[(k + 1) % segs], b_[k]))
-    if not closed:
+    if not closed and caps:
         bm.faces.new(rings[0])
         bm.faces.new(list(reversed(rings[-1])))
-    return finish(name, bm, collection, mat, **kw)
+    return finish(name, bm, collection, mat, **{"builder": "lathe", **kw})
 
 
 def multi_cyl(name, collection, specs, segs=8, mat=None):
@@ -212,7 +217,7 @@ def multi_cyl(name, collection, specs, segs=8, mat=None):
             bm.faces.new((ra[k], ra[(k + 1) % segs], rb[(k + 1) % segs], rb[k]))
         bm.faces.new(list(reversed(ra)))
         bm.faces.new(rb)
-    return finish(name, bm, collection, mat, smooth=False)
+    return finish(name, bm, collection, mat, smooth=False, builder="multi_cyl")
 
 
 def extrude_polys(name, collection, polys3d_pairs, mat=None, **kw):
@@ -226,13 +231,13 @@ def extrude_polys(name, collection, polys3d_pairs, mat=None, **kw):
         bm.faces.new(list(reversed(b)))
         for i in range(n):
             bm.faces.new((a[i], a[(i + 1) % n], b[(i + 1) % n], b[i]))
-    return finish(name, bm, collection, mat, smooth=False, **kw)
+    return finish(name, bm, collection, mat, smooth=False, **{"builder": "extrude", **kw})
 
 
 def grid(name, collection, size=1.0, mat=None):
     bm = bmesh.new()
     bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=size)
-    return finish(name, bm, collection, mat, smooth=False)
+    return finish(name, bm, collection, mat, smooth=False, builder="grid")
 
 
 def from_pydata(name, collection, verts, faces, mat=None, **kw):
@@ -240,7 +245,7 @@ def from_pydata(name, collection, verts, faces, mat=None, **kw):
     vs = [bm.verts.new(Vector(v)) for v in verts]
     for f in faces:
         bm.faces.new([vs[i] for i in f])
-    return finish(name, bm, collection, mat, **kw)
+    return finish(name, bm, collection, mat, **{"builder": "pydata", **kw})
 
 
 # ----------------------------------------------------------------------------- photo-driven
@@ -250,7 +255,7 @@ def plate(name, collection, poly_px, x0, x1, mat=None, ref=None, **kw):
     r = _ref(ref)
     pa = [r.P3(u, v, x0) for (u, v) in poly_px]
     pb = [r.P3(u, v, x1) for (u, v) in poly_px]
-    return extrude_polys(name, collection, [(pa, pb)], mat, **kw)
+    return extrude_polys(name, collection, [(pa, pb)], mat, **{"builder": "plate", **kw})
 
 
 def superellipse_ring(cx_u, v_top, v_bot, half_w, n, e_top=2.6, e_bot=4.0, widest=0.55):
@@ -282,7 +287,7 @@ def loft_rings(name, collection, rings, mat=None, caps=True, **kw):
     if caps:
         bm.faces.new(list(reversed(vr[0])))
         bm.faces.new(vr[-1])
-    return finish(name, bm, collection, mat, **kw)
+    return finish(name, bm, collection, mat, **{"builder": "loft", **kw})
 
 
 def loft_px(name, collection, stations, n, mat=None, ref=None, **kw):

@@ -48,7 +48,7 @@ glass, wood, metal) ≤ 6. Repeating bricks/tiles are texture, not geometry.
 **Measure** (front + side photo or turnaround sheet): height, head size, shoulder/hip widths,
 joint heights (knee, hip, elbow, wrist), limb thickness at joints.
 **Breakdown**: joint graph (`rig.HUMANOID_JOINTS` scaled to height) → `rig.skin_body()` volume
-blockout (Stage 1) → proportions check front/side → refine: separate head/hands, sculpt-like lofts
+blockout (S1) → proportions check front/side (R01) → refine: separate head/hands, sculpt-like lofts
 per limb (`loft_rings` with elliptical sections along bone axes) → clothing as separate meshes →
 `rig.armature(HUMANOID_BONES)` → `rig.bind_auto()` → test poses via `rig.pose_key`.
 **Typical**: 1.75 m adult, ~7.5 heads, T- or A-pose, facing −Y, origin between the feet.
@@ -62,5 +62,5 @@ check deformation with 4 test poses (arm up, knee bent, crouch, head turn).
 Budget 0.5k–10k. Origin bottom-centre (on the floor) or grip point (hand-held).
 
 ## Environments / scenes
-Block the layout with boxes on a grid first (Stage 1), camera(s) placed early, then refine hero
+Block the layout with boxes on a grid first (S1 PRIMITIVE), camera(s) placed early, then refine hero
 assets individually as their own projects and link/append them. Keep ≤ 3 hierarchy levels.

@@ -1,62 +1,84 @@
 # VEH_TT92_Racing_Car
 
-## Category
-vehicle
+Red front-engined single-seater: photo-measured plan (wheels, body width, cockpit, exhaust, rear
+suspension) with a user-directed redesign of the front end, engine and details.
+Category `vehicle`, style `realistic_game`.
 
-## Objective
-Accurate, editable game-asset reconstruction (realistic_game) of the red front-engined
-"TT92 / #4" retro single-seater racing car shown in the photos — not a generic vintage racer.
+## Files
+| file | role |
+|------|------|
+| `landmarks.py` | every number: `[PHOTO]` = measured in px on the top photo, `[DESIGN]` = chosen |
+| `parts.py` | geometry recipes, one builder per part group; `STAGES` maps builders to stages |
+| `stagelib.py` | shared helpers of the stage scripts (milestones, review renders) |
+| `stage1_blockout.py` | LOW blockout of every part, proportions + collision check |
+| `stage2_body.py` | HIGH primary forms: wheels, body shell + boolean cuts, nose mouth |
+| `stage3_mechanical.py` | HIGH exhaust (both sides), tail nozzle, suspension, blown V8 |
+| `stage4_details.py` | HIGH cockpit, details, front end, fasteners; pivots, checks, renders, GLB, report |
+| `stage5_workspace.py` | clean GUI file `..._WORKSPACE.blend` |
+| `build.py` | runs the stages (`--stage N`, `--from N`, `--until N`) |
+| `refcams.py` | orthographic top reference camera + photo |
+| `ref/` | `REAL_REFERENCE.png` (top photo, truth for the plan), `REF_OBLIQUE.png`, cheatsheet, analysis crops |
+| `report.json` | checks + metrics of the last stage 4 run |
 
-## References
-- ref/REAL_REFERENCE.png   primary truth: near-orthographic TOP view, 681x1265 px, front = image TOP
-- ref/REF_OBLIQUE.png      secondary photo: high oblique from the car's front-RIGHT, 631x1121 px
-- ref/MODELING_CHEATSHEET.png  AI sheet, 1672x941 px (decomposition, heights, sections only)
+## Build
+```bash
+python wb.py build VEH_TT92_Racing_Car                # stages 1-5
+python wb.py build VEH_TT92_Racing_Car --stage 5      # only the workspace file
+python wb.py build VEH_TT92_Racing_Car --from 2       # stage 2 to the end
+python wb.py present VEH_TT92_Racing_Car --style clay # studio sheets (also studio_dark)
+```
+The project is NOT on the gated S1-S4 pipeline (`wb.py gate` reports it as legacy): the nose is a
+design change, so a silhouette gate against the top photo would be meaningless there. The checks
+live in `stage4_details.py` (U02-U15, V01-V04).
 
-**Reference conflict (resolved by source priority, photo wins):** the cheatsheet treats the pointed
-end as the NOSE and puts the cockpit near the blunt end. The photos show the opposite: the steering
-wheel is ahead of the seat towards the blunt end, the engine louvres + exhaust headers are at the
-blunt end, the exhaust runs rearwards to the pointed end. So: blunt louvred end = FRONT, pointed
-end = TAIL (1950s front-engined GP layout). The cheatsheet side view is therefore used only for
-global heights (0.78 m body, 0.12 m clearance), never for the position of cockpit/headrest.
+## Outputs (`output/VEH_TT92_Racing_Car/`)
+- `blend/..._WORKSPACE.blend` - **the file to work in**: final model only, collections Body / Front /
+  Cockpit / Engine / Exhaust / Suspension / Wheels / Fasteners (+ Reference, Studio), one root
+  empty, wheel pivots on the axles, live bevel modifiers, README text block.
+- `blend/VEH_TT92_Racing_Car.blend` - pipeline file (LOW + HIGH), source of `present` and of stage 5.
+- `blend/..._00_SETUP ... _05_FINAL_GEOMETRY.blend` - one milestone per build step.
+- `glb/VEH_TT92_Racing_Car.glb`, `renders/`, `presentation/`, `work/s1..s4/` (review renders).
 
-There is no side photo. Plan view (X/Y) comes from the top photo; heights (Z) are estimated from
-the cheatsheet numbers + mechanical logic and checked against the oblique photo (fitted camera).
+## Reference numbers (last build)
+HIGH 98,604 tris (target 40k-100k), LOW 17,058 tris, 252 mesh objects, 8 materials,
+bbox 1.802 x 3.380 x 0.836 m, wheelbase 2.128 m, track F 1.32 / R 1.43 m, tyres 0.59 / 0.72 m.
+A rebuild must reproduce these exactly.
 
-## Scale & measurements (docs/03)
-- scale: 312.5 px/m from the rear tyre diameter 225 px = 0.72 m (cheatsheet "tire diameter 0.72 m",
-  typical vintage-GP rear cover 0.70-0.75 m)
-- cross-checks: rear track 447 px = 1.43 m vs cheatsheet 1.46 m (-2 %); wheelbase 665 px = 2.13 m
-  vs 250F-class front-engined GP cars 2.2-2.3 m (-5 %); cheatsheet length 3.80 m vs 3.30 m body
-  (the AI sheet stretches overhangs; photo wins)
-- photo tilt: none needed (top view); camera slightly off-centre -> body centre-line drifts
-  341-350 px (±3 cm); model is built symmetric about u = 345
-- key dimensions (measured): WB 2.13 m, track F 1.32 / R 1.43 m, body 3.30 m (+ tail blade 0.17 m),
-  body max width 0.64 m, overall width 1.82 m, tyre dia F 0.59 / R 0.72 m
+## Scale and axes
+Scale 312.5 px/m from the rear tyre (225 px = 0.72 m); cross-checks: rear track 447 px = 1.43 m,
+wheelbase 665 px = 2.13 m. +X = car left, -Y = front, +Z up, origin midway between the axles on
+the ground. Top photo: front = image top (the AI cheatsheet shows the car reversed; photo wins).
 
-## Style / budget
-STYLE=realistic_game
-Stage 1 LOW: < 15k tris   Stage 2 HIGH: 40k - 100k tris   materials <= 8
+## The design as built
+- **Body**: loft of superellipse sections; three boolean cuts (cockpit, engine bay, nose mouth);
+  low tapered wedge nose (tip 0.38 x 0.22 m); the tail tapers to a round face (radius 0.14 m).
+- **Front** ("old JDM wedge", inspired by a Honda RA300 nose, a riveted hot rod and slim sport-bike
+  eyes - inspiration, not copies): wide flat mouth with chrome lip, five chrome slats and an emblem;
+  slanted smoked eyes with two round lamps each; red bullet fender mirrors on chrome stalks; dark
+  chin spoiler; twin cream stripes from the nose to the engine bay; riveted bonnet seams.
+- **Engine**: blown 60-degree V8 in an open bay (blocks, cam covers, Roots blower, four velocity
+  stacks, crank-to-blower belt). Invented: no photo shows the engine.
+- **Exhaust**: four headers per side into a wrapped side pipe, mirrored left/right. Behind the rear
+  axle both pipes sweep inwards and enter the **tail nozzle** (`NOZZLE_*`, rocket-thruster reference):
+  stepped dark collar sleeved over the tail end, bronze heat ring, chrome bell, dark core, six ribs,
+  two inlet sleeves. No glow: an emissive ring would need a 9th material (limit is 8).
+- **Rest**: wire wheels with knock-off spinners, double-wishbone front, transverse coil-over rear,
+  leather cockpit, bonnet louvres, filler caps, air filter.
 
-## Part breakdown (primary -> secondary -> tertiary)
-| Part | builder | approx size | LOD notes |
-|------|---------|-------------|-----------|
-| wheels x4 (tyre, wire rim, spinner) | lathe + tubes | F 0.59, R 0.72 m | spokes HIGH only |
-| body shell with cockpit opening | custom loft_rings (open-top rings) | 3.3 x 0.64 x 0.66 m | subsurf HIGH |
-| nose grille (ribbed carbon) | lathe/loft | 0.2 m | ribs HIGH |
-| side fins L/R | extruded plan outline | 0.3 x 0.14 m | bevel |
-| bonnet louvres, side louvre panel | extrude_polys | | HIGH |
-| front suspension (wishbones, uprights, brake drums) | tubes/cyl | | |
-| rear suspension (transverse coil-overs, links, radius rods) | tubes/helix | | |
-| exhaust (right): headers -> wrapped pipe -> tip | tube | r 0.03 m | wrap helix HIGH |
-| cockpit: tub, seat, steering wheel, padded rim | loft/lathe/tube | | |
-| tail blade, fuel caps, air filter, canards | plates/lathe | | UNCERTAIN where hidden |
+## Uncertain / limits
+- No side photo: every height is a design estimate (`BODY_ZTOP/ZBOT`, exhaust, suspension).
+- The nose (v < 250 px) and the tail (v > 950 px) no longer follow the top photo - intended.
+- Right front suspension is mirrored from the left (`UNCERTAIN_SUSP_Front_*`).
+- Faint shading marks remain around the nose mouth (boolean on the subdivided shell).
+- Paint is a plain material; tyres have no tread.
 
-## Uncertain / hidden areas
-- all heights (no side photo) -> body height profile, fin height, suspension heights
-- right front suspension (hidden under carbon/shadow) mirrored from left
-- underside, engine, gearbox (hidden) -> not modelled beyond the floor
-- carbon canards at the nose, tail blade height
-
-## Deliverables
-output/VEH_TT92_Racing_Car/blend/VEH_TT92_Racing_Car_00_SETUP ... _05_FINAL_GEOMETRY, VEH_TT92_Racing_Car.blend
-output/VEH_TT92_Racing_Car/glb/VEH_TT92_Racing_Car.glb, output/VEH_TT92_Racing_Car/renders/, projects/VEH_TT92_Racing_Car/report.json
+## History (2026-09-29 .. 2026-10-01)
+1. Reconstruction from the top photo (two-stage legacy build).
+2. Engine bay + V8, exhaust mirrored, panel lines, first nose redesign (fangs, claws, scoop).
+3. Front v2 "white hot rod" box nose - rejected. Front v3 "old JDM wedge" - kept.
+4. Removed on request: side fins, side louvre panels, tail blade, canards, door lines + handles.
+5. Flame relief as geometry tried and reverted - planned later as a normal map.
+6. Project rewritten into five stage scripts + clean workspace file; geometry verified identical
+   (per-object fingerprint: 239 objects, 0 differences).
+7. Rear redesign: pointed tail replaced by a round tail face with a rocket-style nozzle; side pipes
+   routed into the nozzle collar; rear radius rods re-anchored on the new tail.

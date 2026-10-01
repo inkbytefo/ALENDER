@@ -1,5 +1,10 @@
 # Case study — VEH_Gemini_Motorcycle (custom Honda inline-4 street bike)
 
+> **Legacy two-stage project** (Stage 1 LOW / Stage 2 HIGH, `stage1.py` + `stage2.py`). The modelling
+> techniques below still apply; the process is now the staged pipeline S1–S5 (docs/01), whose
+> reference implementation is `projects/PROP_AK_Rifle`. `wb.py gate` does not apply here until the
+> project is migrated. Its numbers are part of the regression baseline (`python wb.py regress`).
+
 Source: `projects/VEH_Gemini_Motorcycle/` · rebuild: `python wb.py build VEH_Gemini_Motorcycle`
 Result: PASS · LOW 135 objects / 9.8k tris · HIGH 192 objects / 65.5k tris · 8 materials ·
 0 critical intersections · GLB round trip 193/193 · reference-camera anchor error 0 px.

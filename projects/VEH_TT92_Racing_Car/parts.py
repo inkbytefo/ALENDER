@@ -1,10 +1,16 @@
 """
-Part builders for VEH_TT92_Racing_Car. Every builder takes a LOD profile (LOW = Stage 1,
-HIGH = Stage 2) and reads ALL placement from landmarks.py (plan from the top photo, heights from
-the Z tables). Library map: docs/04_MODELING_TOOLKIT.md.
+Part builders for VEH_TT92_Racing_Car - HOW every part of the car is made.
 
-Naming: <GROUP>_<Part>[_L|_R]; LOW objects get _LOW via nm(); guessed parts UNCERTAIN_ prefix.
-Axes: +X = car LEFT, -Y = front, +Z up; origin midway between the axles on the ground.
+  landmarks.py  = WHERE and HOW BIG (all numbers)        parts.py = the geometry recipes
+  stage*.py     = WHEN (which builders run in which stage, milestones, checks, renders)
+
+Every builder takes a LOD profile: LOW (stage 1 blockout) or HIGH (stages 2-4, final model) and
+returns the objects it created. STAGES at the bottom maps the builders to the stages.
+
+Naming: <GROUP>_<Part>[_L|_R]; LOW objects get the _LOW suffix (nm()); UNCERTAIN_ = hidden in the
+photo and mirrored/guessed. Groups: BODY, NOSE, AERO, WHEEL, BRAKE, SUSP, EXHAUST, ENG, COCKPIT,
+FASTENER. Axes: +X = car left, -Y = front, +Z up; origin midway between the axles on the ground.
+Library map: docs/04_MODELING_TOOLKIT.md.
 """
 import math
 import bpy
@@ -13,7 +19,8 @@ from mathutils import Vector, Matrix
 from mathutils.bvhtree import BVHTree
 
 import landmarks as L
-from workbench.bl import mesh, mods
+from workbench.bl import mesh, mods, scene
+from workbench.bl.fasteners import Fasteners
 
 LOW = dict(name="LOW", ring=16, body_step=40, lathe=20, tube=8, spokes=0, bevel=False,
            C_PRIMARY="02_LOW_PRIMARY", C_SECONDARY="03_LOW_SECONDARY", C_MECH="04_LOW_MECHANICAL",
@@ -22,24 +29,25 @@ HIGH = dict(name="HIGH", ring=40, body_step=16, lathe=56, tube=14, spokes=24, be
             C_PRIMARY="05_HIGH_BODY", C_SECONDARY="05_HIGH_BODY", C_MECH="06_HIGH_MECHANICAL",
             C_DETAIL="07_DETAILS")
 
-PALETTE = {                          # 8 materials (docs/02_STANDARDS.md)
+PALETTE = {                          # name: (base colour, metallic, roughness) - 8 materials max (docs/02)
     "MAT_BODY_RED":   ((0.34, 0.012, 0.010), 0.3, 0.36),
-    "MAT_CARBON":     ((0.035, 0.035, 0.04), 0.3, 0.30),
     "MAT_RUBBER":     ((0.018, 0.018, 0.018), 0.0, 0.85),
     "MAT_METAL_DARK": ((0.05, 0.05, 0.055), 0.8, 0.45),
     "MAT_CHROME":     ((0.80, 0.80, 0.80), 1.0, 0.12),
     "MAT_EXHAUST":    ((0.42, 0.36, 0.30), 1.0, 0.40),
     "MAT_LEATHER":    ((0.22, 0.11, 0.05), 0.0, 0.55),
-    "MAT_WRAP":       ((0.40, 0.33, 0.22), 0.0, 0.85),
+    "MAT_STRIPE":     ((0.78, 0.74, 0.64), 0.0, 0.40),          # bonnet stripes + exhaust heat wrap
+    "MAT_GLOW":       dict(rgb=(1.0, 0.30, 0.04), metallic=0.0, roughness=0.5,
+                           emission=(1.0, 0.22, 0.02), emission_strength=2.2),   # afterburner liner
 }
 
 # name-prefix pairs that must never intersect (validate.intersections)
 CRITICAL_PAIRS = [
     ("WHEEL_", "BODY_Shell"), ("WHEEL_", "EXHAUST_"), ("EXHAUST_Pipe", "BODY_Shell"),
-    ("WHEEL_", "AERO_"), ("WHEEL_", "UNCERTAIN_AERO_"), ("SUSP_Rear_Rod", "EXHAUST_"),
+    ("WHEEL_", "AERO_"), ("SUSP_Rear_Rod", "EXHAUST_"),
     ("COCKPIT_SteeringWheel", "COCKPIT_Seat"), ("WHEEL_Front", "SUSP_Rear"),
     ("WHEEL_Rear", "SUSP_Front"), ("EXHAUST_", "AERO_"), ("WHEEL_Front_Tire", "BRAKE_"),
-    ("WHEEL_Rear_Tire", "BRAKE_"),
+    ("WHEEL_Rear_Tire", "BRAKE_"), ("ENG_", "BODY_Shell"),
 ]
 
 WHEELS = {  # tag: (x centre, axle v, radius, width)
@@ -138,8 +146,36 @@ def cockpit_outline(n_side=24):
     return out
 
 
+def bay_outline(n_corner=6):
+    """closed plan polygon [(x, y)] of the engine bay opening: rounded rectangle, tighter at the rear."""
+    y0, y1 = L.Y(L.BAY_V[0]), L.Y(L.BAY_V[1])
+    hw = L.BAY_HW
+    pts = []
+    for (cx, cy, r, a0) in ((hw - L.BAY_R_FRONT, y0 + L.BAY_R_FRONT, L.BAY_R_FRONT, -90),
+                            (hw - L.BAY_R_REAR, y1 - L.BAY_R_REAR, L.BAY_R_REAR, 0),
+                            (-hw + L.BAY_R_REAR, y1 - L.BAY_R_REAR, L.BAY_R_REAR, 90),
+                            (-hw + L.BAY_R_FRONT, y0 + L.BAY_R_FRONT, L.BAY_R_FRONT, 180)):
+        for i in range(n_corner + 1):
+            a = math.radians(a0 + 90.0 * i / n_corner)
+            pts.append((cx + r * math.cos(a), cy + r * math.sin(a)))
+    return pts
+
+
+def nose_opening():
+    """(y0, zm, a, b): face plane, centre height and half axes (m) of the nose mouth."""
+    v = L.BODY_NOSE_V
+    hw, zt, zb, et, eb, wd = section_params(v)
+    zm = zb + (zt - zb) * wd
+    return L.Y(v), zm, hw * L.NOSE_GRILLE[0], (zt - zb) * 0.5 * L.NOSE_GRILLE[1]
+
+
+def ellipse_pts(y, zm, a, b, n):
+    return [(a * math.cos(2 * math.pi * k / n), y, zm + b * math.sin(2 * math.pi * k / n)) for k in range(n)]
+
+
 def body(lod):
-    """BODY_Shell: side/plan-driven loft, cockpit carved with a boolean prism (interior dark)."""
+    """BODY_Shell: loft of superellipse sections (subsurf L1 baked at HIGH), then three boolean cuts:
+    cockpit opening, engine bay pit, oval nose mouth. Cut walls/floors get the dark material."""
     n = lod["ring"]
     rings = []
     for v in body_stations(lod["body_step"]):
@@ -157,18 +193,38 @@ def body(lod):
                              [([(x, y, zc) for x, y in poly], [(x, y, 1.5) for x, y in poly])])
     mods.boolean(ob, cut, apply=True)
     bpy.data.objects.remove(cut, do_unlink=True)
-    # interior faces (cut walls + floor) -> dark material; the boolean can leave an empty slot
+    # engine bay: open pit down to BAY_FLOOR_Z
+    bay = bay_outline(6 if lod["name"] == "HIGH" else 3)
+    cut = mesh.extrude_polys("TEMP_BayCutter", "08_TEMP",
+                             [([(x, y, L.BAY_FLOOR_Z) for x, y in bay], [(x, y, 1.5) for x, y in bay])])
+    mods.boolean(ob, cut, apply=True)
+    bpy.data.objects.remove(cut, do_unlink=True)
+    # nose: oval grille pocket cut into the flat face
+    ny, nzm, na, nb = nose_opening()
+    nn = 40 if lod["name"] == "HIGH" else 16
+    front = ellipse_pts(ny - 0.06, nzm, na, nb, nn)
+    back = ellipse_pts(ny + L.NOSE_POCKET_DEPTH, nzm, na, nb, nn)
+    cut = mesh.extrude_polys("TEMP_NoseCutter", "08_TEMP", [(front, back)])
+    mods.boolean(ob, cut, apply=True)
+    bpy.data.objects.remove(cut, do_unlink=True)
+    # interior faces (cut walls + floors) -> dark material; the boolean can leave an empty slot
     ob.data.materials.clear()
     ob.data.materials.append(bpy.data.materials["MAT_BODY_RED"])
     ob.data.materials.append(bpy.data.materials["MAT_METAL_DARK"])
     for p in ob.data.polygons:
         p.material_index = 0
     v0, v1 = L.COCKPIT_V
+    b0, b1 = L.BAY_V
     for p in ob.data.polygons:
         c = p.center
         v = L.V_MID + c.y * L.S
         if v0 - 1 <= v <= v1 + 1 and abs(c.x) <= L.open_hw(min(max(v, v0), v1)) + 0.004 \
                 and c.z < L.interp(L.BODY_ZTOP, v) - 0.004:
+            p.material_index = 1
+        elif b0 - 1 <= v <= b1 + 1 and abs(c.x) <= L.BAY_HW + 0.004 and c.z < top_z(v, c.x) - 0.006:
+            p.material_index = 1
+        elif c.y < ny + L.NOSE_POCKET_DEPTH + 0.002 and (c.x / na) ** 2 + ((c.z - nzm) / nb) ** 2 < 1.004 \
+                and c.y > ny - 0.02:
             p.material_index = 1
     for p in ob.data.polygons:
         p.use_smooth = True
@@ -195,24 +251,26 @@ def surface_z(bvh, x, y, default):
 
 # ============================================================================ NOSE
 def nose(lod):
-    """NOSE_Grille: dark ribbed carbon dome closing the blunt nose face (oblique photo)."""
-    v = L.BODY_NOSE_V
-    hw, zt, zb, et, eb, wd = section_params(v)
-    zm = zb + (zt - zb) * wd
-    y0 = L.Y(v)
-    n = lod["ring"]
-    k = 17 if lod["name"] == "HIGH" else 4
-    rings = []
-    for i in range(k):
-        t = i / (k - 1)
-        s = max(0.05, math.cos(t * math.pi / 2) ** 0.7) * 0.97
-        if lod["name"] == "HIGH" and 0 < i < k - 1 and i % 2 == 1:
-            s *= 0.95                                    # concentric ribs (oblique photo)
-        dy = -0.05 * math.sin(t * math.pi / 2) + 0.006
-        rings.append([(x * s, y0 + dy, zm + (z - zm) * s) for (x, z) in section(v, n)])
-    ob =mesh.loft_rings(nm(lod, "NOSE_Grille"), lod["C_SECONDARY"], rings, "MAT_CARBON",
-                         sharp_angle=70)
-    return [ob]
+    """Old-JDM mouth: wide flat oval in the wedge tip, chrome lip, five horizontal chrome slats set back
+    in the dark pocket and a round centre emblem."""
+    hi = lod["name"] == "HIGH"
+    y0, zm, a, b = nose_opening()
+    out = []
+    n = 48 if hi else 20
+    ring = [Vector(p) + Vector((0, 0.003, 0)) for p in ellipse_pts(y0, zm, a, b, n)]
+    ring.append(ring[0])
+    out.append(mesh.tube(nm(lod, "NOSE_Ring"), lod["C_SECONDARY"], ring, 0.011, 8 if hi else 5, "MAT_CHROME",
+                         smooth_path=False, caps=False))
+    yg = y0 + 0.03
+    specs = []
+    for t in (-0.66, -0.33, 0.0, 0.33, 0.66):
+        c = a * 0.99 * math.sqrt(max(0.0, 1 - t * t))
+        specs.append((Vector((-c, yg, zm + t * b)), Vector((c, yg, zm + t * b)), 0.0042))
+    out.append(mesh.multi_cyl(nm(lod, "NOSE_Grille"), lod["C_SECONDARY"], specs, 6 if hi else 4, "MAT_CHROME"))
+    out.append(mesh.lathe(nm(lod, "NOSE_Emblem"), lod["C_SECONDARY"], (0, yg - 0.012, zm),
+                          [(0.0, -0.007), (0.019, -0.006), (0.026, -0.002), (0.026, 0.006), (0.0, 0.006)],
+                          24 if hi else 10, "MAT_CHROME", closed=False, axis="Y"))
+    return out
 
 
 # ============================================================================ WHEELS
@@ -287,102 +345,40 @@ def wheels(lod):
     return out
 
 
-# ============================================================================ AERO
-def fins(lod):
-    """AERO_SideFin_L/R: flat 'shark' fins behind the front wheels (plan outline from the photo)."""
-    out = []
-    t = 0.018
-    poly = [(u, v) for (u, v) in L.FIN_L_PX]
-    poly_root = poly[:-1] + [(262, 470), (262, 380)]      # root buried 12 px into the flank
-    for side, sg in (("L", 1.0), ("R", -1.0)):
-        pts = [(sg * L.X(u), L.Y(v)) for (u, v) in poly_root]
-        if sg < 0:
-            pts = list(reversed(pts))
-        z0 = L.FIN_Z - t / 2
-        # slight dihedral: tip 2 cm higher than the root
-        def zz(x, z):
-            return z + 0.02 * max(0.0, (abs(x) - 0.3) / 0.33)
-        a = [(x, y, zz(x, z0)) for x, y in pts]
-        b = [(x, y, zz(x, z0 + t)) for x, y in pts]
-        ob = mesh.extrude_polys(nm(lod, f"AERO_SideFin_{side}"), lod["C_SECONDARY"], [(a, b)], "MAT_BODY_RED")
-        out.append(hard(ob, lod, 0.005))
-    return out
-
-
-def canards(lod):
-    """UNCERTAIN_AERO_*: dark carbon tabs and canard plates beside the nose (shape guessed)."""
-    out = []
-    for side, sg in (("L", 1.0), ("R", -1.0)):
-        u = L.NOSE_TABS_U[0] if sg > 0 else L.NOSE_TABS_U[1]
-        x = L.X(u)
-        # vertical tab on the nose flank
-        y0, y1 = L.Y(125), L.Y(190)
-        zb = top_z(150, x) - 0.06
-        tab = [(x, y0, zb + 0.10), (x, y1, zb + 0.08), (x, y1, zb), (x, y0 + 0.03, zb - 0.02)]
-        a = [(p[0] - 0.004, p[1], p[2]) for p in tab]
-        b = [(p[0] + 0.004, p[1], p[2]) for p in tab]
-        out.append(hard(mesh.extrude_polys(nm(lod, f"UNCERTAIN_AERO_NoseTab_{side}"), lod["C_SECONDARY"],
-                                           [(a, b)], "MAT_CARBON"), lod, 0.002))
-        # canard plate from the nose flank out towards the front wheel, sloped 40 deg outboard-down
-        pts = [(sg * L.X(u2), L.Y(v2)) for (u2, v2) in L.CANARD_L_PX]
-        if sg < 0:
-            pts = list(reversed(pts))
-        xi = abs(L.X(L.CANARD_L_PX[0][0]))
-        z_in = 0.45
-
-        def zc(px):
-            return z_in - (abs(px) - xi) * math.tan(math.radians(40))
-        a = [(px, py, zc(px)) for px, py in pts]
-        b = [(px, py, zc(px) + 0.008) for px, py in pts]
-        out.append(hard(mesh.extrude_polys(nm(lod, f"UNCERTAIN_AERO_Canard_{side}"), lod["C_SECONDARY"],
-                                           [(a, b)], "MAT_CARBON"), lod, 0.002))
-    return out
-
-
-def tail_blade(lod):
-    """AERO_TailBlade: thin blade on the tail ridge, running past the tip to v 1195."""
-    v0, v1, vt = 1080.0, 1195.0, L.BODY_TAIL_V
-    pts = []
-    for v in (v0, 1110, 1140, vt, v1):
-        zt = L.interp(L.BODY_ZTOP, min(v, vt))
-        pts.append((L.Y(v), zt - 0.03 if v < vt else zt - 0.06))
-    top = [(L.Y(v0), L.interp(L.BODY_ZTOP, v0) + 0.012), (L.Y(1140), L.interp(L.BODY_ZTOP, 1140) + 0.02),
-           (L.Y(v1), L.interp(L.BODY_ZTOP, vt) + 0.01)]
-    poly = [(y, z) for y, z in pts] + list(reversed(top))
-    a = [(-0.003, y, z) for y, z in poly]
-    b = [(0.003, y, z) for y, z in poly]
-    return [hard(mesh.extrude_polys(nm(lod, "AERO_TailBlade"), lod["C_SECONDARY"], [(a, b)],
-                                    "MAT_BODY_RED"), lod, 0.0015)]
-
-
 # ============================================================================ EXHAUST
 def exhaust_path():
-    pts = []
-    for i, (u, v) in enumerate(L.EXHAUST_PX):
-        t = i / (len(L.EXHAUST_PX) - 1)
-        pts.append(Vector((L.X(u), L.Y(v), L.EXHAUST_Z[0] + (L.EXHAUST_Z[1] - L.EXHAUST_Z[0]) * t)))
-    return pts
+    return [Vector((L.X(u), L.Y(v), z)) for (u, v, z) in L.EXHAUST_PATH]
 
 
 def exhaust(lod):
+    """EXHAUST_*_R (photo side) + mirrored EXHAUST_*_L: 4 headers per bank -> collector -> wrapped pipe
+    that sweeps inwards behind the rear axle and ends inside the afterburner can (afterburners())."""
     out = []
-    path = exhaust_path()
-    tip = path[-1] + Vector((-0.012, L.m(L.EXHAUST_TIP_V - L.EXHAUST_PX[-1][1]), 0.0))
-    out.append(mesh.tube(nm(lod, "EXHAUST_Pipe"), lod["C_MECH"], path + [tip], L.EXHAUST_R,
+    for side, sg in (("R", 1.0), ("L", -1.0)):
+        out += exhaust_side(lod, side, sg)
+    return out
+
+
+def exhaust_side(lod, side, sg):
+    """sg = +1 builds the right side (-X, as in the photo); sg = -1 mirrors it across x = 0."""
+    def mx(p):
+        return Vector((sg * p.x, p.y, p.z))
+    out = []
+    path = [mx(p) for p in exhaust_path()]
+    out.append(mesh.tube(nm(lod, f"EXHAUST_Pipe_{side}"), lod["C_MECH"], path, L.EXHAUST_R,
                          lod["tube"], "MAT_EXHAUST", samples=6))
-    # headers: leave the right flank high (seen above the fin root), run back above the fin and drop
-    # into the collector (first pipe point) behind the fin trailing edge
+    # headers: leave the flank at the V8 cylinder pitch, run back and drop into the collector
+    # (first pipe point)
     col = path[0]
-    zh = 0.56
+    zh = 0.505
     for i, v in enumerate(L.HEADER_V):
-        x0 = -(flank_x(v, zh) - 0.02)
+        x0 = -sg * (flank_x(v, zh) - 0.02)
         k = i - 1.5
         p0 = Vector((x0, L.Y(v), zh))
-        p1 = Vector((x0 - 0.05, L.Y(v) + 0.025, zh - 0.01))
-        p2 = Vector((col.x - 0.02 + 0.012 * k, L.Y(495) + 0.012 * k, 0.50 + 0.012 * k))
-        p3 = col + Vector((0.003 * k, -0.015, 0.003 * k))
-        pts = [p0, p1, p2, p3] if p1.y < p2.y - 0.04 else [p0, p2, p3]
-        out.append(mesh.tube(nm(lod, f"EXHAUST_Header_{i + 1}"), lod["C_MECH"], pts, 0.017,
+        p2 = Vector((col.x - sg * 0.02, L.Y(v) + 0.04, 0.485 + 0.006 * k))
+        p2b = Vector((col.x - sg * 0.02, L.Y(530) + 0.004 * i, 0.47 + 0.006 * k))
+        p3 = col + Vector((0.003 * k, -0.015 - 0.004 * (3 - i), 0.003 * k))
+        out.append(mesh.tube(nm(lod, f"EXHAUST_Header_{side}{i + 1}"), lod["C_MECH"], [p0, p2, p2b, p3], 0.017,
                              lod["tube"], "MAT_EXHAUST", samples=6))
     # heat wrap over the middle section
     wv0, wv1 = L.EXHAUST_WRAP_V
@@ -394,13 +390,13 @@ def exhaust(lod):
             turns = (b - a).length / 0.012
             seg = mesh.helix(a, b, L.EXHAUST_R + 0.004, turns, 10)
             pts += seg if not pts else seg[1:]
-        out.append(mesh.tube("EXHAUST_Wrap", lod["C_DETAIL"], pts, 0.0045, 6, "MAT_WRAP",
+        out.append(mesh.tube(f"EXHAUST_Wrap_{side}", lod["C_DETAIL"], pts, 0.0045, 6, "MAT_STRIPE",
                              smooth_path=False))
-        out.append(mesh.tube("EXHAUST_WrapCore", lod["C_DETAIL"], wp, L.EXHAUST_R + 0.002, lod["tube"],
-                             "MAT_WRAP", smooth_path=False))
+        out.append(mesh.tube(f"EXHAUST_WrapCore_{side}", lod["C_DETAIL"], wp, L.EXHAUST_R + 0.002,
+                             lod["tube"], "MAT_STRIPE", smooth_path=False))
     else:
-        out.append(mesh.tube(nm(lod, "EXHAUST_Wrap"), lod["C_MECH"], wp, L.EXHAUST_WRAP_R, lod["tube"],
-                             "MAT_WRAP", smooth_path=False))
+        out.append(mesh.tube(nm(lod, f"EXHAUST_Wrap_{side}"), lod["C_MECH"], wp, L.EXHAUST_WRAP_R, lod["tube"],
+                             "MAT_STRIPE", smooth_path=False))
     return out
 
 
@@ -410,6 +406,89 @@ def path_at(path, y):
             t = (y - a.y) / (b.y - a.y)
             return a.lerp(b, t)
     return path[-1]
+
+
+# ============================================================================ AFTERBURNER (tail outlet)
+def afterburners(lod):
+    """EXHAUST_AB_*: one jet-style outlet on the centre line, on the round tail face; both side pipes
+    run into it. front -> rear: chrome can sleeved over the tail end with dark heat slots and two band
+    rings, an outer and an inner ring of flat converging petals (polygonal exit); inside a glowing
+    liner, a flame-holder cone and a ring of teeth; two inlet sleeves swallow the pipe ends."""
+    out = []
+    hi = lod["name"] == "HIGH"
+    CM, CD = lod["C_MECH"], lod["C_DETAIL"]
+    seg = lod["lathe"] if hi else 16
+    R, re = L.AB_CAN_R, L.AB_EXIT_R
+    y1, y2 = L.AB_CAN                        # can front / rear
+    y3 = y2 + L.AB_PETAL_LEN                 # exit plane
+    hw, zt, zb, et, eb, wd = section_params(L.BODY_TAIL_V)
+    c = Vector((0.0, L.Y(L.BODY_TAIL_V), zb + (zt - zb) * wd))      # centre of the tail face
+
+    def P(deg, r, lat):
+        a = math.radians(deg)
+        return c + Vector((r * math.cos(a), lat, r * math.sin(a)))
+
+    out.append(mesh.lathe(nm(lod, "EXHAUST_AB_Can"), CM, c,
+                          [(R, y1), (R, y2), (R - 0.010, y2), (R - 0.010, 0.03), (R - 0.020, 0.03),
+                           (R - 0.020, y1)], seg, "MAT_CHROME", axis="Y", sharp_angle=35))
+    for i, lat in enumerate((y1 + 0.008, y2 - 0.008)):
+        out.append(mesh.lathe(nm(lod, f"EXHAUST_AB_Band_{i + 1}"), CM, c,
+                              [(R - 0.002, lat - 0.010), (R + 0.007, lat - 0.010), (R + 0.007, lat + 0.010),
+                               (R - 0.002, lat + 0.010)], seg, "MAT_METAL_DARK", axis="Y", sharp_angle=35))
+    # glowing liner (back disc + tube) and the flame holder in front of it
+    out.append(mesh.lathe(nm(lod, "EXHAUST_AB_Glow"), CM, c,
+                          [(0.0, 0.035), (re - 0.010, 0.035), (re - 0.010, y3 - 0.05)], seg, "MAT_GLOW",
+                          closed=False, caps=False, axis="Y"))
+    out.append(mesh.lathe(nm(lod, "EXHAUST_AB_FlameHolder"), CM, c,
+                          [(0.0, 0.16), (0.030, 0.12), (0.052, 0.045), (0.0, 0.045)], max(12, seg // 2),
+                          "MAT_METAL_DARK", closed=False, axis="Y"))
+    path = exhaust_path()
+    for side, sg in (("R", 1.0), ("L", -1.0)):                # sleeves swallowing the pipe ends
+        p1 = Vector((sg * path[-1].x, path[-1].y, path[-1].z))
+        p0 = Vector((sg * path[-2].x, path[-2].y, path[-2].z))
+        d = (p1 - p0).normalized()
+        out.append(mesh.cyl(nm(lod, f"EXHAUST_AB_Inlet_{side}"), CM, p1 - d * 0.085, p1 - d * 0.005,
+                            L.EXHAUST_R + 0.009, lod["tube"], "MAT_METAL_DARK"))
+    if not hi:                                                # LOW: one frustum instead of the petals
+        out.append(mesh.lathe(nm(lod, "EXHAUST_AB_Petals"), CM, c,
+                              [(R + 0.004, y2), (re, y3), (re - 0.008, y3), (R - 0.006, y2)], seg,
+                              "MAT_METAL_DARK", axis="Y"))
+        return out
+    n = L.AB_PETALS
+    pitch = 360.0 / n
+    for layer, (off, r0, r1, la, lb, mat) in enumerate((
+            (0.0, R + 0.008, re, y2 - 0.006, y3, "MAT_METAL_DARK"),
+            (pitch / 2, R, re - 0.008, y2 - 0.012, y3 - 0.022, "MAT_EXHAUST"))):
+        polys = []
+        da = pitch * (0.43 if layer == 0 else 0.45)
+        for k in range(n):
+            a = 90.0 + off + k * pitch                        # one petal seam on the top centre line
+            outer = [P(a - da, r0, la), P(a + da, r0, la), P(a + da * 0.92, r1, lb), P(a - da * 0.92, r1, lb)]
+            inner = [P(a - da, r0 - 0.005, la), P(a + da, r0 - 0.005, la),
+                     P(a + da * 0.92, r1 - 0.005, lb), P(a - da * 0.92, r1 - 0.005, lb)]
+            polys.append((outer, inner))
+        out.append(mesh.extrude_polys(f"EXHAUST_AB_Petals{'Outer' if layer == 0 else 'Inner'}", CD, polys, mat))
+    # heat slots around the can (thin dark strips; none where the pipes enter) and the flame-holder teeth
+    slots, teeth = [], []
+    for k in range(L.AB_SLOTS):
+        a = 90.0 + k * 360.0 / L.AB_SLOTS
+        if min(abs(math.cos(math.radians(a)) - 1), abs(math.cos(math.radians(a)) + 1)) < 0.12:
+            continue                                          # pipe inlet side
+        w = 2.4                                               # half width in degrees
+        la, lb = y1 + 0.03, y2 - 0.03
+        o = [P(a - w, R + 0.0015, la), P(a + w, R + 0.0015, la), P(a + w, R + 0.0015, lb), P(a - w, R + 0.0015, lb)]
+        i_ = [P(a - w, R - 0.004, la), P(a + w, R - 0.004, la), P(a + w, R - 0.004, lb), P(a - w, R - 0.004, lb)]
+        slots.append((o, i_))
+    for k in range(20):
+        a = k * 18.0
+        o = [P(a - 4, re - 0.012, y3 - 0.10), P(a + 4, re - 0.012, y3 - 0.10),
+             P(a + 2.4, re - 0.016, y3 - 0.06), P(a - 2.4, re - 0.016, y3 - 0.06)]
+        i_ = [P(a - 4, re - 0.040, y3 - 0.10), P(a + 4, re - 0.040, y3 - 0.10),
+              P(a + 2.4, re - 0.030, y3 - 0.06), P(a - 2.4, re - 0.030, y3 - 0.06)]
+        teeth.append((o, i_))
+    out.append(mesh.extrude_polys("EXHAUST_AB_Slots", CD, slots, "MAT_METAL_DARK"))
+    out.append(mesh.extrude_polys("EXHAUST_AB_Teeth", CD, teeth, "MAT_METAL_DARK"))
+    return out
 
 
 # ============================================================================ SUSPENSION
@@ -473,7 +552,7 @@ def rear_suspension(lod):
         # diagonal radius rod: hub carrier -> tail underside
         (u0, v0), (u1, v1) = L.REAR_RODS_PX[0 if sg > 0 else 1]
         p0 = Vector((xh - sg * 0.02, L.Y(v0), R - 0.09))      # passes UNDER the exhaust pipe
-        p1 = Vector((L.X(u1), L.Y(v1), 0.20))
+        p1 = Vector((L.X(u1), L.Y(v1), L.REAR_ROD_Z))
         out.append(mesh.cyl(nm(lod, f"SUSP_Rear_Rod_{side}"), lod["C_MECH"], p0, p1, 0.011, lod["tube"],
                             "MAT_CHROME"))
     return out
@@ -481,6 +560,7 @@ def rear_suspension(lod):
 
 # ============================================================================ COCKPIT
 def cockpit(lod):
+    """COCKPIT_*: steering wheel + column, leather seat, dash, red rim lip, padded cowl roll."""
     out = []
     bvh = body_bvh()
     # steering wheel: torus in a plane leaning 20 deg back from vertical, facing the driver (+Y)
@@ -524,7 +604,7 @@ def cockpit(lod):
     a_ = [(x, y, zb0) for x, y in back_pts]
     b_ = [(x, y + 0.04, zb1) for x, y in back_pts]
     # curved shell 5 cm thick: two closed rings (bottom, top) lofted
-    back =mesh.loft_rings(nm(lod, "COCKPIT_Seat_Back"), lod["C_SECONDARY"],
+    back = mesh.loft_rings(nm(lod, "COCKPIT_Seat_Back"), lod["C_SECONDARY"],
                            [[(x, y, z) for (x, y, z) in a_] + [(x, y + 0.05, z) for (x, y, z) in reversed(a_)],
                             [(x, y, z) for (x, y, z) in b_] + [(x, y + 0.05, z) for (x, y, z) in reversed(b_)]],
                            "MAT_LEATHER", sharp_angle=60)
@@ -554,8 +634,9 @@ def cockpit(lod):
     return out
 
 
-# ============================================================================ SMALL BODY PARTS
+# ============================================================================ BONNET / DECK DETAILS
 def body_details(lod):
+    """filler caps on the rear deck, air filter on the left bonnet flank, two rows of bonnet louvres."""
     out = []
     bvh = body_bvh()
     # fuel/oil filler caps on the rear deck
@@ -573,13 +654,6 @@ def body_details(lod):
     z = surface_z(bvh, x, L.Y((v0 + v1) / 2), 0.6) + r * 0.4
     out.append(mesh.cyl(nm(lod, "ENGINE_AirFilter_L"), lod["C_SECONDARY"], (x, L.Y(v0), z), (x, L.Y(v1), z),
                         r, lod["tube"], "MAT_BODY_RED"))
-    # louvred panel on the left flank (u 235..265)
-    vs0, vs1 = L.SIDE_LOUVRE_V
-    zc = 0.60
-    xs = flank_x((vs0 + vs1) / 2, zc)
-    out.append(hard(mesh.box(nm(lod, "BODY_SideLouvrePanel_L"), lod["C_SECONDARY"],
-                             (xs - 0.01, (L.Y(vs0) + L.Y(vs1)) / 2, zc), (0.05, L.Y(vs1) - L.Y(vs0), 0.09),
-                             "MAT_BODY_RED"), lod, 0.008))
     if lod["name"] == "HIGH":
         polys = []
         # bonnet louvres: raised lips following the surface
@@ -596,29 +670,354 @@ def body_details(lod):
                       (xa, ya + d, za + 0.007)]
                 fb = [(p[0], p[1], p[2] - 0.012) for p in fa]
                 polys.append((fa, fb))
-        # side panel slats
-        for i in range(12):
-            v = vs0 + 8 + (vs1 - vs0 - 16) * i / 11
-            y = L.Y(v)
-            x0 = xs + 0.015
-            fa = [(x0, y - 0.005, zc - 0.035), (x0, y - 0.005, zc + 0.035), (x0 + 0.008, y + 0.004, zc + 0.035),
-                  (x0 + 0.008, y + 0.004, zc - 0.035)]
-            fb = [(p[0] - 0.012, p[1], p[2]) for p in fa]
-            polys.append((fa, fb))
         out.append(mesh.extrude_polys("BODY_Louvres", lod["C_DETAIL"], polys, "MAT_BODY_RED"))
     return out
 
 
+# ============================================================================ ENGINE (blown V8 in the bay)
+def engine(lod):
+    """ENG_*: 60-degree V8 (2 x 4 cyl) with a belt-driven Roots blower and four velocity stacks, sitting
+    in the bonnet pit. Crank axis along Y, front = -Y. Everything stays inside |x| < BAY_HW and above
+    BAY_FLOOR_Z so it never touches the shell (CRITICAL_PAIRS)."""
+    out = []
+    hi = lod["name"] == "HIGH"
+    CM, CD = lod["C_MECH"], lod["C_DETAIL"]
+    yc = L.ENG_Y_CENTRE
+    zc = L.ENG_CRANK_Z
+    th = math.radians(L.ENG_BANK_DEG)
+    seg = lod["lathe"] // 2 if hi else 10
+    # lower end: oil pan, crankcase, timing cover, bellhousing
+    out.append(hard(mesh.box(nm(lod, "ENG_OilPan"), CM, (0, yc, 0.29), (0.20, 0.30, 0.10), "MAT_METAL_DARK"),
+                    lod, 0.006))
+    out.append(hard(mesh.box(nm(lod, "ENG_Crankcase"), CM, (0, yc, 0.385), (0.22, 0.34, 0.14), "MAT_METAL_DARK"),
+                    lod, 0.006))
+    out.append(hard(mesh.box(nm(lod, "ENG_TimingCover"), CM, (0, yc - 0.195, 0.39), (0.17, 0.05, 0.20),
+                             "MAT_METAL_DARK"), lod, 0.006))
+    out.append(mesh.lathe(nm(lod, "ENG_Bellhousing"), CM, (0, yc + 0.17, zc),
+                          [(0.12, -0.03), (0.13, 0.02), (0.125, 0.10), (0.095, 0.14), (0.09, 0.19)],
+                          seg, "MAT_METAL_DARK", axis="Y", closed=False))
+    # banks: head block + cam cover per bank, one exhaust stub per cylinder towards the bay wall
+    for side, sg in (("L", 1.0), ("R", -1.0)):
+        rot = Matrix.Rotation(sg * th, 3, "Y")
+        ax = rot @ Vector((0, 0, 1))
+        nrm = (rot @ Vector((1, 0, 0))) * sg                  # outward normal of the bank
+        cen = Vector((0, yc, zc)) + ax * 0.115
+        out.append(hard(mesh.box(nm(lod, f"ENG_Bank_{side}"), CM, cen, (0.12, 0.34, 0.19),
+                                 "MAT_METAL_DARK", rot=rot), lod, 0.004))
+        cc = Vector((0, yc, zc)) + ax * 0.225
+        out.append(hard(mesh.box(nm(lod, f"ENG_CamCover_{side}"), CM, cc, (0.10, 0.34, 0.03),
+                                 "MAT_CHROME", rot=rot), lod, 0.004))
+        cap = cc + ax * 0.012 + Vector((0, 0.10, 0))
+        out.append(mesh.cyl(nm(lod, f"ENG_OilCap_{side}"), CD, cap, cap + ax * 0.02, 0.018, 12, "MAT_CHROME"))
+        port = cen + nrm * 0.06
+        xo = sg * (L.BAY_HW - 0.018)
+        for i in range(4):
+            y = yc + (i - 1.5) * L.ENG_PITCH
+            out.append(mesh.cyl(nm(lod, f"ENG_Port_{side}{i + 1}"), CD, Vector((port.x, y, port.z)),
+                                Vector((xo, y, port.z - 0.03)), 0.012, 8, "MAT_EXHAUST"))
+    # intake manifold + blower (Roots case, chrome) over the valley
+    out.append(hard(mesh.box(nm(lod, "ENG_Intake"), CM, (0, yc, 0.595), (0.14, 0.30, 0.14), "MAT_METAL_DARK"),
+                    lod, 0.004))
+    out.append(hard(mesh.box(nm(lod, "ENG_Blower"), CM, (0, yc, 0.715), (0.22, 0.30, 0.13), "MAT_CHROME"),
+                    lod, 0.012))
+    if hi:                                                    # rotor-case ribs on the blower sides
+        for sgx, tag in ((1, "L"), (-1, "R")):
+            for i in range(7):
+                y = yc - 0.12 + 0.04 * i
+                out.append(mesh.cyl(f"ENG_BlowerRib_{tag}{i + 1}", CD, Vector((sgx * 0.109, y, 0.715)),
+                                    Vector((sgx * 0.116, y, 0.715)), 0.048, 14, "MAT_CHROME"))
+    # four velocity stacks facing forward on the blower front
+    yf = yc - 0.15
+    zs = 0.75
+    sp = [(0.019, 0.0), (0.019, -0.03), (0.024, -0.05), (0.031, -0.07), (0.038, -0.088),
+          (0.034, -0.09), (0.026, -0.076), (0.016, -0.03), (0.016, 0.0)]
+    for i, xs_ in enumerate((-0.105, -0.035, 0.035, 0.105)):
+        out.append(mesh.lathe(nm(lod, f"ENG_Stack_{i + 1}"), CM, (xs_, yf, zs), sp, seg + 4, "MAT_CHROME",
+                              axis="Y"))
+    # belt drive on the front: crank pulley -> blower pulley
+    yb = yc - 0.225
+    zb2 = 0.68
+    out.append(mesh.cyl(nm(lod, "ENG_CrankSnout"), CD, Vector((0, yc - 0.17, zc)), Vector((0, yb, zc)), 0.02, 10,
+                        "MAT_CHROME"))
+    out.append(mesh.lathe(nm(lod, "ENG_CrankPulley"), CD, (0, yb, zc),
+                          [(0.012, -0.01), (0.055, -0.01), (0.055, 0.01), (0.012, 0.01)], seg, "MAT_METAL_DARK",
+                          axis="Y"))
+    out.append(mesh.cyl(nm(lod, "ENG_BlowerDriveShaft"), CD, Vector((0, yf, zb2)), Vector((0, yb, zb2)),
+                        0.012, 8, "MAT_CHROME"))
+    out.append(mesh.lathe(nm(lod, "ENG_BlowerPulley"), CD, (0, yb, zb2),
+                          [(0.012, -0.01), (0.035, -0.01), (0.035, 0.01), (0.012, 0.01)], seg, "MAT_METAL_DARK",
+                          axis="Y"))
+    r1, r2 = 0.058, 0.038                                     # belt radius around crank / blower pulley
+    nz = (r1 - r2) / (zb2 - zc)
+    a0 = math.atan2(nz, math.sqrt(1 - nz * nz))
+    belt = []
+    for k in range(7):                                        # over the top of the blower pulley
+        a = a0 + (math.pi - 2 * a0) * k / 6
+        belt.append(Vector((r2 * math.cos(a), yb, zb2 + r2 * math.sin(a))))
+    for k in range(7):                                        # under the crank pulley
+        a = math.pi - a0 + (math.pi + 2 * a0) * k / 6
+        belt.append(Vector((r1 * math.cos(a), yb, zc + r1 * math.sin(a))))
+    belt.append(belt[0])
+    out.append(mesh.tube(nm(lod, "ENG_Belt"), CD, belt, 0.0045, 6, "MAT_RUBBER", smooth_path=False, caps=False))
+    return out
+
+
+# ============================================================================ PANEL LINES
+def seam_specs(bvh, polyline, kind, r=0.0018, step=0.03, sg=1.0):
+    """[(p0, p1, r)] short cylinders along a polyline projected on the body. kind 'top': polyline of (x, y)
+    dropped vertically; kind 'side': polyline of (y, z) shot horizontally from the +-X side (sg)."""
+    dense = []
+    for a, b in zip(polyline, polyline[1:]):
+        n = max(1, int(math.hypot(b[0] - a[0], b[1] - a[1]) / step))
+        for i in range(n):
+            t = i / n
+            dense.append((a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t))
+    dense.append(polyline[-1])
+    pts = []
+    for p in dense:
+        if kind == "top":
+            hit = bvh.ray_cast(Vector((p[0], p[1], 3.0)), Vector((0, 0, -1)), 5.0)
+        else:
+            hit = bvh.ray_cast(Vector((sg * 1.5, p[0], p[1])), Vector((-sg, 0, 0)), 5.0)
+        pts.append(None if hit[0] is None else hit[0] - hit[1] * 0.0008)
+    return [(a, b, r) for a, b in zip(pts, pts[1:]) if a is not None and b is not None]
+
+
+def panel_lines(lod):
+    """BODY_PanelLines (HIGH only): thin dark grooves projected on the shell - bonnet front seam, two
+    shoulder lines, cowl seam, tail deck seam. BODY_BayLip: red lip around the engine bay."""
+    out = []
+    hi = lod["name"] == "HIGH"
+    bvh = body_bvh()
+    step = 0.03 if hi else 0.06
+    specs = []
+
+    def xs(v):
+        return min(L.HOOD_SEAM_X, 0.78 * L.body_hw(v))
+
+    f0, f1 = L.HOOD_SEAM_V
+    # bonnet panel: front cross seam (bowed forward), two shoulder lines, cowl cross seam
+    front = [(c * xs(f0), L.Y(f0) - 0.025 * (1 - c * c)) for c in [-1 + 2 * i / 12 for i in range(13)]]
+    specs += seam_specs(bvh, front, "top", step=step)
+    for sg in (1.0, -1.0):
+        line = [(sg * xs(v), L.Y(v)) for v in range(int(f0), int(f1), 20)] + [(sg * xs(f1), L.Y(f1))]
+        specs += seam_specs(bvh, line, "top", step=step)
+    specs += seam_specs(bvh, [(-xs(f1), L.Y(f1)), (xs(f1), L.Y(f1))], "top", step=step)
+    # rear deck cross seam
+    tv = L.TAIL_SEAM_V
+    specs += seam_specs(bvh, [(-0.8 * L.body_hw(tv), L.Y(tv)), (0.8 * L.body_hw(tv), L.Y(tv))], "top", step=step)
+    if hi:                                                    # grooves are a HIGH-only detail
+        out.append(mesh.multi_cyl("BODY_PanelLines", lod["C_DETAIL"], specs, 4, "MAT_METAL_DARK"))
+    # red lip around the engine bay (like the cockpit rim lip)
+    rim = [Vector((x * 1.01, y, surface_z(bvh, x * 1.03 + math.copysign(0.004, x), y, 0.7)))
+           for x, y in bay_outline(6 if hi else 3)]
+    rim.append(rim[0])
+    out.append(mesh.tube(nm(lod, "BODY_BayLip"), lod["C_SECONDARY"], rim, 0.011, lod["tube"] - 2, "MAT_BODY_RED",
+                         smooth_path=False, caps=False))
+    return out
+
+
+# ============================================================================ FRONT DETAILS (old-JDM wedge)
+def surface_ribbon(bvh, rows, cols, lift, thick):
+    """(verts, faces) of a thin shell lying on the body: rows = [((xa, ya), (xb, yb)), ...] plan
+    cross-sections, each split into `cols` cells and dropped onto the surface along -Z."""
+    top, bot = [], []
+    for (pa, pb) in rows:
+        for c in range(cols + 1):
+            t = c / cols
+            x, y = pa[0] + (pb[0] - pa[0]) * t, pa[1] + (pb[1] - pa[1]) * t
+            hit = bvh.ray_cast(Vector((x, y, 3.0)), Vector((0, 0, -1)), 5.0)
+            pt, nr = (hit[0], hit[1]) if hit[0] is not None else (Vector((x, y, 0.5)), Vector((0, 0, 1)))
+            top.append(pt + nr * (lift + thick))
+            bot.append(pt + nr * (lift - thick * 0.5))
+    nr_, nc = len(rows), cols + 1
+    verts = top + bot
+    off = len(top)
+    faces = []
+
+    def idx(r, c):
+        return r * nc + c
+    for r in range(nr_ - 1):
+        for c in range(cols):
+            q = (idx(r, c), idx(r, c + 1), idx(r + 1, c + 1), idx(r + 1, c))
+            faces.append(q)
+            faces.append(tuple(off + i for i in reversed(q)))
+    ring = [idx(r, 0) for r in range(nr_)] + [idx(nr_ - 1, c) for c in range(1, nc)] + \
+           [idx(r, cols) for r in range(nr_ - 2, -1, -1)] + [idx(0, c) for c in range(cols - 1, 0, -1)]
+    for i in range(len(ring)):
+        a_, b_ = ring[i], ring[(i + 1) % len(ring)]
+        faces.append((a_, b_, off + b_, off + a_))
+    return verts, faces
+
+
+def front_details(lod):
+    """slanted twin-lamp eyes (smoked plate + chrome trim + 2 lamps), fender mirrors, chin spoiler,
+    twin cream stripes over the bonnet. Everything is dropped on the shell with ray casts."""
+    out = []
+    hi = lod["name"] == "HIGH"
+    bvh = body_bvh()
+    CS = lod["C_SECONDARY"]
+    (x0, v0), (x1, v1) = L.EYE_LINE
+    N = 12 if hi else 4
+    for side, sg in (("L", 1.0), ("R", -1.0)):
+        c0, c1 = Vector((sg * x0, L.Y(v0))), Vector((sg * x1, L.Y(v1)))
+        d = (c1 - c0).normalized()
+        nrm = Vector((-d.y, d.x))
+        rows = []
+        for k in range(N + 1):
+            t = k / N
+            c = c0.lerp(c1, t)
+            w = max(0.006, L.interp(L.EYE_WIDTH, t))
+            rows.append((tuple(c + nrm * w / 2), tuple(c - nrm * w / 2)))
+        verts, faces = surface_ribbon(bvh, rows, 3 if hi else 1, 0.003, 0.004)
+        out.append(mesh.from_pydata(nm(lod, f"BODY_Eye_{side}"), CS, verts, faces, "MAT_METAL_DARK",
+                                    smooth=False))
+        if hi:
+            nc = 4
+            ring = [Vector(verts[r * nc]) for r in range(N + 1)] + [Vector(verts[r * nc + 3]) for r in range(N, -1, -1)]
+            ring = [p + Vector((0, 0, 0.0015)) for p in ring] + [ring[0] + Vector((0, 0, 0.0015))]
+            out.append(mesh.tube(f"BODY_EyeTrim_{side}", lod["C_DETAIL"], ring, 0.0022, 6, "MAT_CHROME",
+                                 smooth_path=False, caps=False))
+        for j, t in enumerate(L.EYE_LAMPS_T):
+            c = c0.lerp(c1, t)
+            hit = bvh.ray_cast(Vector((c.x, c.y, 3.0)), Vector((0, 0, -1)), 5.0)
+            if hit[0] is None:
+                continue
+            r = 0.016
+            lamp = mesh.lathe(nm(lod, f"BODY_EyeLamp_{side}{j + 1}"), CS, (0, 0, 0),
+                              [(0.0, 0.009), (r * 0.75, 0.0085), (r, 0.006), (r * 1.1, 0.004), (r * 1.1, -0.004),
+                               (0.0, -0.004)], 20 if hi else 8, "MAT_CHROME", closed=False, axis="Z")
+            q = Vector((0, 0, 1)).rotation_difference(hit[1])
+            xform(lamp, Matrix.Translation(hit[0] + hit[1] * 0.006) @ q.to_matrix().to_4x4())
+            out.append(lamp)
+        # fender mirror: chrome stalk + body-colour bullet head facing back
+        mx, mv = L.MIRROR_PX
+        x, y = sg * mx, L.Y(mv)
+        z = surface_z(bvh, x, y, 0.6)
+        p0 = Vector((x, y, z - 0.01))
+        p1 = Vector((x + sg * 0.025, y + 0.01, z + 0.085))
+        out.append(mesh.cyl(nm(lod, f"BODY_MirrorStalk_{side}"), CS, p0, p1, 0.006, 8, "MAT_CHROME"))
+        out.append(mesh.lathe(nm(lod, f"BODY_MirrorHead_{side}"), CS, p1,
+                              [(0.0, -0.055), (0.012, -0.046), (0.021, -0.028), (0.027, -0.006), (0.027, 0.020),
+                               (0.024, 0.030), (0.0, 0.031)], 20 if hi else 8, "MAT_BODY_RED", closed=False,
+                              axis="Y"))
+        out.append(mesh.lathe(nm(lod, f"BODY_MirrorGlass_{side}"), CS, p1,
+                              [(0.0, 0.0335), (0.021, 0.0335), (0.021, 0.029), (0.0, 0.029)], 16 if hi else 8,
+                              "MAT_CHROME", closed=False, axis="Y"))
+    # chin spoiler: thin dark plate under the mouth, slightly wider than the wedge tip
+    f0, f1 = L.CHIN_V
+    zf, zr = L.CHIN_Z
+    yf, yr = L.Y(f0), L.Y(f1)
+    ym = L.Y(122)
+
+    def zc(y):
+        return zf + (zr - zf) * (y - yf) / (yr - yf)
+    plan = [(-0.19, yf), (0.19, yf), (0.235, ym), (0.235, yr), (-0.235, yr), (-0.235, ym)]
+    a = [(x, y, zc(y)) for x, y in plan]
+    b = [(x, y, zc(y) + 0.008) for x, y in plan]
+    out.append(hard(mesh.extrude_polys(nm(lod, "AERO_ChinSpoiler"), CS, [(a, b)], "MAT_METAL_DARK"), lod, 0.002))
+    # twin cream stripes from the nose tip to the engine bay
+    s0, s1 = L.STRIPE_V
+    xc, w = L.STRIPE_X
+    nrow = 40 if hi else 10
+    verts, faces = [], []
+    for sg in (1.0, -1.0):
+        rows = []
+        for k in range(nrow + 1):
+            v = s0 + (s1 - s0) * k / nrow
+            rows.append(((sg * xc - w / 2, L.Y(v)), (sg * xc + w / 2, L.Y(v))))
+        vv, ff = surface_ribbon(bvh, rows, 2, 0.0007, 0.0006)
+        o = len(verts)
+        verts += vv
+        faces += [tuple(i + o for i in f) for f in ff]
+    out.append(mesh.from_pydata(nm(lod, "BODY_Stripes"), CS, verts, faces, "MAT_STRIPE"))
+    return out
+
+
+# ============================================================================ FASTENERS
+def fasteners(lod):
+    """FASTENER_*: rivets/bolts dropped on the shell (HIGH only, instanced meshes)."""
+    if lod["name"] != "HIGH":
+        return []
+    fs = Fasteners(lod["C_DETAIL"], mat="MAT_CHROME")
+    bvh = body_bvh()
+
+    def on_body(x, y, kind):
+        hit = bvh.ray_cast(Vector((x, y, 3.0)), Vector((0, 0, -1)), 5.0)
+        if hit[0] is not None:
+            fs.place(kind, hit[0] - hit[1] * 0.001, hit[1])
+
+    # rear deck arc behind the cockpit and along both cockpit flanks
+    for i in range(15):
+        a = math.pi * i / 14
+        on_body(0.24 * math.cos(a), L.Y(L.COCKPIT_V[1]) + 0.04 + 0.05 * math.sin(a), "BOLT_M5")
+    for sg in (-1, 1):
+        for i in range(10):
+            v = L.COCKPIT_V[0] + 30 + (L.COCKPIT_V[1] - L.COCKPIT_V[0] - 60) * i / 9
+            on_body(sg * (L.open_hw(v) + 0.035), L.Y(v), "BOLT_M5")
+    # bonnet strap bolts behind the nose (v 205) and at the cowl seam
+    for v in (205, L.HOOD_SEAM_V[1]):
+        for sg in (-1, 1):
+            for f in (0.35, 0.7):
+                on_body(sg * f * L.body_hw(v), L.Y(v), "BOLT_M6")
+    # riveted bonnet panel: rows along both shoulder seams and along the front cross seam
+    for sg in (-1, 1):
+        v = 150.0
+        while v < 615:
+            on_body(sg * min(L.HOOD_SEAM_X, 0.78 * L.body_hw(v)), L.Y(v), "BOLT_M5")
+            v += 22.0
+    for i in range(15):
+        c = -1 + 2 * i / 14
+        on_body(c * min(L.HOOD_SEAM_X, 0.78 * L.body_hw(L.HOOD_SEAM_V[0])),
+                L.Y(L.HOOD_SEAM_V[0]) - 0.025 * (1 - c * c) - 0.012, "BOLT_M5")
+    bpy.context.view_layer.update()
+    return []
+
+
+# ============================================================================ PIVOTS
+def set_pivots(objs):
+    """object origins: wheel parts on their axle (they spin), steering parts on the wheel centre,
+    everything else at its bbox centre. Instanced fasteners keep their own origin."""
+    shared = {o.data.name for o in objs if o.name.startswith("FASTENER_") and o.data.users > 1}
+    for ob in objs:
+        if ob.type != "MESH" or ob.data.name in shared:
+            continue
+        axle = None
+        for tag, (x, v, R, W) in WHEELS.items():
+            pos, side = tag.split("_")
+            if ob.name.startswith(f"WHEEL_{pos}_") and ob.name.endswith("_" + side) \
+                    or ob.name == f"BRAKE_Drum_{tag}":
+                axle = (x, L.Y(v), R)
+        if axle:
+            scene.set_origin(ob, axle)
+        elif ob.name.startswith("COCKPIT_Steering"):
+            scene.set_origin(ob, (L.X(L.STEER_WHEEL_PX[0]), L.Y(L.STEER_WHEEL_PX[1]), L.STEER_WHEEL_Z))
+        else:
+            scene.origin_to_bbox_center(ob)
+
+
+# ============================================================================ STAGES
+# which builders run in which stage (stage 1 runs ALL of them at LOW; stages 2-4 at HIGH)
+STAGES = {
+    2: ("wheels", "body", "nose"),                                             # primary forms
+    3: ("exhaust", "afterburners", "front_suspension", "rear_suspension", "engine"),   # mechanical
+    4: ("cockpit", "body_details", "panel_lines", "front_details", "fasteners"),   # details
+}
+
+
+def build_stage(n, lod):
+    return {name: globals()[name](lod) for name in STAGES[n]}
+
+
 def build_global(lod):
-    """phase 1: global proportions only (wheels + body shell)."""
+    """global proportions only: wheels + body shell."""
     return {"wheels": wheels(lod), "body": body(lod)}
 
 
 def build_all(lod):
-    parts = build_global(lod)
-    parts.update(nose=nose(lod), fins=fins(lod), canards=canards(lod), tail=tail_blade(lod),
-                 exhaust=exhaust(lod), fsusp=front_suspension(lod), rsusp=rear_suspension(lod),
-                 cockpit=cockpit(lod), details=body_details(lod))
+    parts = {}
+    for n in sorted(STAGES):
+        parts.update(build_stage(n, lod))
     return parts
 
 
@@ -628,6 +1027,6 @@ def guide_points():
         "FRONT_AXLE_R": (-L.TRACK_HALF_F, L.Y(L.FRONT_AXLE_V), L.R_TYRE_F),
         "REAR_AXLE_L": (L.TRACK_HALF_R, L.Y(L.REAR_AXLE_V), L.R_TYRE_R),
         "REAR_AXLE_R": (-L.TRACK_HALF_R, L.Y(L.REAR_AXLE_V), L.R_TYRE_R),
-        "NOSE": (0.0, L.Y(L.BODY_NOSE_V), 0.385), "TAIL": (0.0, L.Y(L.BODY_TAIL_V), 0.44),
+        "NOSE": (0.0, L.Y(L.BODY_NOSE_V), 0.29), "TAIL": (0.0, L.Y(L.BODY_TAIL_V), 0.425),
         "STEERING_WHEEL": (0.0, L.Y(L.STEER_WHEEL_PX[1]), L.STEER_WHEEL_Z),
     }

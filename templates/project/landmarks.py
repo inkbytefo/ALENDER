@@ -34,3 +34,9 @@ BODY_HALF_WIDTH = 0.25            # metres (depth is never visible in a side pho
 
 # crosses drawn by `python wb.py compare`
 MARKS = [ANCHOR_PX]
+
+# reference silhouette (gate R01): closed px polygons whose union is the object seen in the photo.
+# Photo truth for gate R02: python wb.py mask __ASSET__  (plain light backgrounds; LOOK at the result).
+# Measure edges instead of reading them by eye: python wb.py profile __ASSET__ U0 U1 V0 V1 --side top|bottom
+SILHOUETTE = [BODY_OUTLINE]
+PART_OUTLINES = {}                # optional {"BODY_Main": BODY_OUTLINE} -> per-part check R03

@@ -58,6 +58,8 @@ wall = mesh.box("ARCH_Wall", C, (0, 3, 1.5), (4, 0.3, 3), "MAT_A")
 cut = mesh.box("TEMP_Cutter", "08_TEMP", (0, 3, 1.05), (0.9, 0.6, 2.1))
 mods.boolean(wall, cut, apply=True)
 check("boolean_applied", len(wall.data.polygons) > 6 and not wall.modifiers)
+check("boolean_no_empty_slots", all(m is not None for m in wall.data.materials) and len(wall.data.materials) == 1,
+      [m.name if m else None for m in wall.data.materials])
 bpy.data.objects.remove(cut, do_unlink=True)
 
 # character blockout + rig + auto weights
@@ -140,6 +142,80 @@ check("pres_render", os.path.isfile(os.path.join(OUT, "pres_hero.png")))
 for o in [o for o in bpy.data.objects if o.name.startswith("PRES_")]:
     bpy.data.objects.remove(o, do_unlink=True)
 
+# ---------------------------------------------------------------- staged pipeline building blocks
+import numpy as np
+from workbench import stages, silhouette, glbinfo
+from workbench.bl import prim, uv, game
+P2 = stages.profile(2)
+check("stages_names", stages.nm(P2, "RECV_Body_PRIM") == "RECV_Body_LP" and stages.base_name("MAG_Body_LOD2") == "MAG_Body"
+      and stages.parse_stage_args(["--from", "3"]) == [3, 4])
+check("builder_tag", bpy.data.objects["PROP_Box"].get("wb_builder") == "box"
+      and bpy.data.objects["PROP_Plate"].get("wb_builder") == "plate")
+mods.subsurf(bpy.data.objects["PROP_Plate"])
+check("policy_H01", validate.smoothing_problems([bpy.data.objects["PROP_Plate"], lo]) == ["PROP_Plate"])
+bpy.data.objects["PROP_Plate"].modifiers.clear()
+check("policy_N01", validate.naming_problems([bpy.data.objects["PROP_Box"], wall], "_LP") == ["PROP_Box", "ARCH_Wall"])
+hy = validate.hygiene([bpy.data.objects["PROP_Box"], bpy.data.objects["PROP_Wheel"]])
+check("hygiene_closed", hy["total"]["non_manifold"] == 0 and hy["total"]["boundary"] == 0
+      and hy["total"]["inverted"] == 0 and hy["total"]["flipped"] == 0, hy["total"])
+flip = mesh.box("PROP_Flip", "08_TEMP", (5, 5, 0.5), (0.4, 0.4, 0.4))
+flip.data.polygons[0].flip()
+hy = validate.hygiene([flip, mesh.grid("PROP_Open", "08_TEMP", 1.0)])
+check("hygiene_detects", hy["total"]["flipped"] > 0 and hy["total"]["boundary"] == 4, hy["total"])
+for n in ("PROP_Flip", "PROP_Open"):
+    bpy.data.objects.remove(bpy.data.objects[n], do_unlink=True)
+pb = prim.box_px("PRIM_Box_PRIM", "08_TEMP", [(500, 600), (700, 600), (650, 450)], 0.05, "MAT_A")
+pp = prim.plate_px("PRIM_Plate_PRIM", "08_TEMP", [(500, 600), (600, 598), (700, 600), (650, 450), (520, 480)], 0.05, tol=5)
+pw = prim.wheel_px("PRIM_Wheel_PRIM", "08_TEMP", (600, 500), 40, 0.03, 10, "MAT_R")
+check("prim_builders", abs(pb.dimensions.y - 0.513) < 0.002 and len(pp.data.polygons) == 6   # ref tilted 2 deg
+      and abs(pw.dimensions.z - 0.2 * math.cos(math.pi / 10)) < 0.002,
+      f"box {pb.dimensions.y:.3f} plate faces {len(pp.data.polygons)} wheel {pw.dimensions.z:.3f}")
+for o in (pb, pp, pw):
+    bpy.data.objects.remove(o, do_unlink=True)
+ua = [bpy.data.objects[n] for n in ("PROP_Cyl", "PROP_Wheel")]
+info = uv.atlas(ua)
+ov = uv.overlap(ua)
+check("uv_atlas", "UV_Bake" in ua[0].data.uv_layers and ov["overlap"] < 0.01 and ov["outside"] == 0.0, (info, ov))
+check("uv_texel", uv.texel_density(ua)["spread"] < 2.0, uv.texel_density(ua))
+g0 = game.evaluated_copy(bpy.data.objects["PROP_Wheel"], "PROP_Wheel_LOD0", "08_TEMP", keep_uv="UV_Bake")
+g1 = game.lod_copy(g0, 0.5, "PROP_Wheel_LOD1", "08_TEMP")
+check("game_lod", len(g0.data.uv_layers) == 1 and game.tris(g1) <= game.tris(g0) * 0.6, f"{game.tris(g0)} -> {game.tris(g1)}")
+cols = game.collision({"wheel": [g0]}, {"wheel": "hull"}, "godot", "PROP_Wheel_LOD0", "08_TEMP")
+check("game_collision", len(cols) == 1 and cols[0][2] <= 250 and cols[0][1].name.endswith("-convcolonly"),
+      [(k, o.name, f) for k, o, f in cols])
+tex = game.bake([bpy.data.objects["PROP_Wheel"]], [g0], os.path.join(OUT, "bake"), 64, prefix="T_smoke", ao_samples=4)
+nm_ = tex["stats"]["normal_mean"]
+check("game_bake", all(os.path.isfile(tex[k]) for k in ("base", "orm", "normal")) and nm_[2] > 0.7,
+      tex["stats"])
+gm = game.game_material("MAT_Smoke_Baked", tex)
+check("game_material", any(n.type == "GROUP" for n in gm.node_tree.nodes)
+      and next(n for n in gm.node_tree.nodes if n.type == "BSDF_PRINCIPLED").inputs["Normal"].is_linked)
+for o in [g0, g1] + [c for _, c, _ in cols]:
+    bpy.data.objects.remove(o, do_unlink=True)
+ref_m = silhouette.rasterize([[(10, 10), (60, 10), (60, 40), (10, 40)]], (80, 50))
+ren_m = silhouette.rasterize([[(12, 10), (60, 10), (60, 40), (12, 40)]], (80, 50))
+sm = silhouette.metrics(ref_m, ren_m)
+check("silhouette_metrics", ref_m.sum() == 1500 and 0.95 < sm["iou"] < 0.97 and sm["b_max"] == 2.0, sm)
+cam_s = cams["CAM_PERSPECTIVE"]
+cam_s["wb_image_size"] = (320, 200)
+sp_ = render.silhouette(cam_s, [bpy.data.objects["PROP_Box"]], os.path.join(OUT, "sil_box.png"))
+al = render.read_alpha(sp_)
+check("render_silhouette", al.shape == (200, 320) and 50 < int((al > 0.5).sum()) < 64000, al.shape)
+del cam_s["wb_image_size"]
+
+# Calibrated perspective camera: a known optical-axis point must reproject to
+# image centre even when the camera is neither SIDE nor TOP.
+from types import SimpleNamespace
+from mathutils import Vector
+cal_loc = Vector((-4.0, -6.0, 2.0))
+cal_target = Vector((0.0, 0.0, 0.7))
+cal_rot = (cal_target - cal_loc).to_track_quat('-Z', 'Y').to_euler()
+cal_ref = SimpleNamespace(view='CALIBRATED', image_size=(640, 360), S=200,
+                          lens=45.0, cam_loc=tuple(cal_loc), cam_rot=tuple(cal_rot))
+cal_cam = cameras.reference_camera(cal_ref, [(tuple(cal_target), (320, 180))], name='CAM_CAL_TEST')
+check('calibrated_camera_projection', cal_cam['anchor_reprojection_error_px'] < 0.01,
+      cal_cam['anchor_reprojection_error_px'])
+
 # export + roundtrip
 scene.save(os.path.join(OUT, "smoke.blend"))
 root = scene.root(A)
@@ -150,6 +226,8 @@ for o in exp:
 glb = os.path.join(OUT, "smoke.glb")
 export.glb([root] + exp, glb, animations=True, skins=True)
 check("glb_written", os.path.getsize(glb) > 10000)
+gi = glbinfo.read(glb)
+check("glbinfo", gi["tris"] > 1000 and gi["meshes"] >= 10 and gi["skins"] == 1, {k: gi[k] for k in ("tris", "meshes", "materials")})
 
 print("\n[SMOKE] RESULT:", "ALL PASS" if not fails else f"FAILED: {fails}")
 if fails:

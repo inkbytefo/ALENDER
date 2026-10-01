@@ -1,7 +1,4 @@
-"""Full build of PROP_AK_Rifle:   python wb.py build PROP_AK_Rifle"""
-import os
-import runpy
+"""Staged build of PROP_AK_Rifle:   python wb.py build PROP_AK_Rifle [--stage N|--from N|--until N]"""
+from workbench.bl import pipeline
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-runpy.run_path(os.path.join(HERE, "stage1.py"), run_name="__main__")
-runpy.run_path(os.path.join(HERE, "stage2.py"), run_name="__main__")
+pipeline.main(__file__)

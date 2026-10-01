@@ -36,8 +36,10 @@ if not os.path.isfile(src):
     sys.exit(f"[PRESENT] missing {src} - build the asset first (python wb.py build {A})")
 scene.open_blend(src)
 
-# show only the finished model: HIGH collections (+ anything outside the standard layout)
-hide = set(scene.LOW_COLLS) | {"00_REFERENCE", "01_GUIDES", "08_TEMP"}
+# show only the finished model: HIGH / S3 DETAIL collections (+ anything outside the standard layout)
+from workbench import stages
+hide = set(scene.LOW_COLLS) | {"00_REFERENCE", "01_GUIDES", "08_TEMP", stages.COLL_COLLISION} | \
+    {s["coll"] for k, s in stages.STAGES.items() if k != stages.DETAIL}
 for c in bpy.data.collections:
     if c.name in hide:
         c.hide_render = c.hide_viewport = True

@@ -3,9 +3,11 @@
 All geometry is procedural (bmesh) and idempotent: calling a builder again replaces the object.
 Import inside Blender scripts:
 ```python
-from workbench import paths, tables                      # pure python
+from workbench import paths, tables, stages, silhouette   # pure python (host + Blender)
+from workbench.stages import Part
 from workbench.refmap import RefMap
-from workbench.bl import scene, mesh, mods, materials, cameras, render, anim, rig, validate, export
+from workbench.bl import scene, mesh, mods, prim, materials, cameras, render, anim, rig, validate, export
+from workbench.bl import uv, game, pipeline              # S2 atlas, S4 game package, stage runner
 from workbench.bl.fasteners import Fasteners
 ```
 
@@ -22,7 +24,16 @@ from workbench.bl.fasteners import Fasteners
 | many tiny repeats in ONE object | `mesh.multi_cyl`, `mesh.extrude_polys` | drill holes, studs, fins, louvres |
 | identical hardware | `Fasteners(coll).place(kind, loc, normal)` / `.ring(...)` | bolts, nuts, washers (linked duplicates) |
 | organic volume from a joint graph | `rig.skin_body(name, coll, joints, edges, radii)` | character blockout, creatures, trees, cables |
-| openings | `mods.boolean(obj, cutter, apply=True)` | doors/windows in walls, holes in plates |
+| openings | `mods.boolean(obj, cutter, apply=True)` | doors/windows in walls, holes in plates (cutter material + slot cleanup automatic) |
+
+### Stage 1 primitives (`workbench.bl.prim`)
+| Shape | Builder |
+|-------|---------|
+| bounding rectangle of a px outline, across X | `prim.box_px(name, coll, poly_or_bounds, hw, mat)` |
+| px outline simplified to its corners (Douglas-Peucker) | `prim.plate_px(name, coll, poly, hw, mat, tol=6)` |
+| cylinder between two px points (radius m) | `prim.cyl_px(name, coll, a_px, b_px, r, segs=8, mat)` |
+| wheel / disc along X at a px centre | `prim.wheel_px(name, coll, center_px, r_px, hw)` |
+| crude stand-ins of finished parts (migration) | `prim.from_objects(objs, name_fn, coll, "bbox"|"hull")` |
 
 Photo-driven builders read pixels through the active RefMap: `mesh.set_ref(L.REF)` once in parts.py.
 Loft stations: `(u, v_top, v_bot, half_width_m, e_top, e_bot, widest)`; build them from landmark
@@ -30,10 +41,18 @@ polylines with `tables.polyline_v(poly, u)` and a width table `tables.interp(tab
 Superellipse exponents: 2 = ellipse, 2.5 = soft crown, 4–7 = boxy; `widest` = fraction of height
 (from the bottom) where the section is widest.
 
-## LOD profiles (one builder, two stages)
-`parts.py` defines `LOW` and `HIGH` dicts (segments, stations, loft ring count, bevel on/off,
-target collections). Every builder takes `lod`. Stage 2 = same function with `HIGH` ⇒ geometry
-refines while proportions stay locked to landmarks. Name LOW objects via `nm(lod, name)` (adds `_LOW`).
+## Stage profiles + part registry (one builder, every stage)
+```python
+PROFILES = {1: stages.profile(1, ring=8), 2: stages.profile(2, ring=16), 3: stages.profile(3, ring=32)}
+PARTS = [Part("receiver", receiver, prim=receiver_prim, collision="hull"), ...]
+def receiver(P):                              # P["stage"], P["coll"], P["bevel"], P["detail"], P["subsurf"], knobs
+    return [hard(mesh.plate(stages.nm(P, "RECV_Body"), P["coll"], L.RECV_BODY, -hw, hw, STEEL), P)]
+```
+`stages.profile(n, **knobs)` sets `bevel/detail/subsurf` True from S3 and points the legacy
+`C_PRIMARY/C_SECONDARY/C_MECH/C_DETAIL` keys at the stage collection. The pipeline runs every
+Part's builder for the stage, tags new objects (`wb_part`, `wb_stage`), adds the stage suffix to
+names that lack it and removes `TEMP_*` leftovers. `Part.prim` defaults to the real builder with
+the coarse S1 profile; `Part.high` defaults to the real builder with the S3 profile.
 
 ## Smoothing policy (critical)
 - **Hard-surface** (plates, boxes, brackets, engine parts): `mods.finish_hard(ob, bevel_w)` =
@@ -62,6 +81,10 @@ refines while proportions stay locked to landmarks. Name LOW objects via `nm(lod
 
 ## Cameras & renders
 - `cameras.reference_camera(REF, anchors)` — reproduces the photo; anchors reproject < 2 px.
+  For fitted three-quarter views, `REF.view="CALIBRATED"` uses explicit `cam_loc`,
+  `cam_rot` (XYZ Euler radians) and `lens` (mm). Calibration is project-owned;
+  its measured reprojection error is not automatically a passing acceptance check.
+  `landmarks.REFERENCE_IMAGE` optionally selects a crop inside `ref/`, preserving the original montage.
 - `cameras.review_rig(center, length, width)` / `rig_from_bounds(objs)` — 5 orthos + 2 perspectives.
 - `render.workbench(cam, path, "CLAY"|"MATERIAL", transparent=True)` — fast review; transparent
   RGBA for overlays. `render.review_set(cams, folder, tag)` renders the whole rig.
@@ -71,8 +94,21 @@ refines while proportions stay locked to landmarks. Name LOW objects via `nm(lod
   rig, AgX) + `hero_cameras(objs)` (auto-framed) + `render_stills` / `turntable_video`;
   CLI `python wb.py present <ASSET>`.
 
+## Pipeline modules
+| Module | Role |
+|--------|------|
+| `workbench.stages` | stage table, `profile`, `nm`, `base_name`, `Part`, collections (pure python) |
+| `workbench.silhouette` | `rasterize` (+closing), `metrics` (IoU, boundary px, worst zones), `diff_rgb`, `simplify`, `snap`, `edge_profile`, `label` (numpy) |
+| `workbench.gate` | `inputs_hash`, `evaluate` → `wb.py gate` (pure python) |
+| `workbench.glbinfo` | read a .glb like an engine: nodes, meshes, tris, materials, image sizes (pure python) |
+| `workbench.bl.pipeline` | stage runner (`main(__file__)`), per-stage checks → report.json |
+| `workbench.bl.uv` | `atlas` (UV_Bake + tiling UVMap), `texel_density`, `overlap` |
+| `workbench.bl.game` | `copies`, `set_pivots`, `merge`, `lod_copy`, `collision`, `bake`, `game_material` |
+| `workbench.bl.validate` | `stats`, `intersections`, `hygiene` (+`hygiene_checks` U04/U05/U11/U12/U16), `policy_checks` (N01/H01), `print_checks` (P01/P02) |
+| `workbench.bl.render` | `workbench` (res from the reference camera), `silhouette`, `only(objs)`, `read_alpha`, `write_rgb`, `beauty`, `animation` |
+
 ## Host tools (normal python)
-`python wb.py grid|crop|compare|sheet` — see `wb.py -h`.
+`python wb.py grid|crop|compare|sheet|mask|profile|snap|glb` — see `wb.py -h` and docs/03.
 
 ## PBR materials & imported models (docs/11)
 - `pbrlib.scan()/find(name)` — texture-set library (`downloaded_resources/materials`, `library/materials`,

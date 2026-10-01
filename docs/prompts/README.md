@@ -16,7 +16,7 @@ Bu klasördeki prompt'lar İngilizce yazıldı çünkü görsel üretim araçlar
 | Dosya | Ne işe yarar | Nereye verilir |
 |-------|--------------|----------------|
 | `01_CHEATSHEET_IMAGE_PROMPT.md` | Gerçek görselden modelleme cheatsheet'i üretir (ortografik görünüşler, ölçüler, kesitler, parça ayrımı) | Nano Banana / Gemini, GPT-Image, Midjourney vb. (görseli ekleyerek) |
-| `02_MODELING_MASTER_PROMPT.md` | Fotoğraf + cheatsheet ile iki aşamalı (LOW → HIGH) 3D modellemeyi başlatır | Claude Code (bu klasörde), diğer kodlama agent'ları |
+| `02_MODELING_MASTER_PROMPT.md` | Fotoğraf + cheatsheet ile aşamalı (S1 primitive → S2 lowpoly → S3 detail → S4 game) 3D modellemeyi başlatır | Claude Code (bu klasörde), diğer kodlama agent'ları |
 | `03_PROMPT_PACKS.md` | Kategoriye göre kısa hazır prompt'lar (araba, motosiklet, bina, karakter, obje, animasyon/video) + düzeltme/devam prompt'ları | Kodlama agent'ı |
 
 ## İpuçları

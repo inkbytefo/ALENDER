@@ -34,8 +34,8 @@ Repeating brick/tile = texture, not geometry. Budget [15k–60k]. Deliver per do
 ## D. Character
 ```text
 Project CHR_[Name] (character). Attached: front + side reference [or turnaround sheet]. Height
-[1.75] m, style [realistic_game | stylized]. Stage 1: joint graph scaled to height →
-rig.skin_body blockout, check front/side overlay of silhouette & joint heights. Stage 2: refined
+[1.75] m, style [realistic_game | stylized]. S1: joint graph scaled to height →
+rig.skin_body blockout, gate R01 on front/side silhouette & joint heights. S2/S3: refined
 body/head/hands, clothing as separate meshes, humanoid armature (rig.HUMANOID_BONES), auto weights,
 4 test poses rendered (arm up, knee bent, crouch, head turn). T-pose, facing −Y, origin between
 feet. Budget 15k–40k, ≤ 6 materials. Faces stylised unless a base mesh is provided.

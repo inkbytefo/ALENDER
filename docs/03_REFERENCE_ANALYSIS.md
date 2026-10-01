@@ -13,6 +13,28 @@ python wb.py crop projects/<A>/ref/REAL_REFERENCE.png 140 320 440 630 --scale 3 
 - Silhouettes: polylines of (u, v) along the top edge and bottom edge of each volume,
   rear → front. Key points: axles, pivots, joints, corners, lamp centres.
 
+## 1b. Measure instead of reading (lessons 33–35)
+Eye-read edges on the AK were off by 3–33 px (lacquer highlights taken as edges, arcs guessed).
+When the edge is measurable, let code measure it:
+```bash
+python wb.py mask <A> [--fill U,V ...]              # plain LIGHT background -> ref/REF_MASK.png
+#   threshold + flood fill from landmarks.ANCHOR_PX + local 50 % rule on the edge band + small
+#   holes filled; --fill forces glare regions (chrome) closed. LOOK at work/ref_mask_check.png.
+python wb.py profile <A> U0 U1 V0 V1 --side top|bottom [--step 8] [--tol 1.5]
+#   the mask's top/bottom edge in a window -> simplified px polyline to paste into landmarks.py
+python wb.py profile <A> ... --photo-thr 150         # same on the raw photo (global 50 % threshold;
+#   only for dark objects on white - lit grey metal needs the mask's local rule)
+python wb.py snap <A> <LANDMARK> [--radius 6]        # second opinion on any photo: strongest edge
+#   along each vertex normal (yellow = suggestion, red = no clear edge) - suggestions, not truth
+```
+- The **50 % rule**: an edge is where the intensity crosses half-way between object and background.
+  Highlights (top of the transition) and haze/shadow (bottom) are both wrong by 2–8 px.
+- Circular arcs (magazine spines, wheel arches): sample the edge rows, fit a circle by least squares
+  (residual ≤ 2 px) and store centre + radius; record the residual in a comment.
+- Write in a comment next to each landmark whether it was measured (command + window) or read.
+- `landmarks.SILHOUETTE` = closed polygons of every visible part; gate R01 compares the model with
+  their union, gate R02 with `REF_MASK.png`. R01 PASS + R02 FAIL ⇒ the landmark is wrong.
+
 ## 2. Which side is visible?
 Front on image **right** ⇒ you see the object's **RIGHT** side (−X) ⇒ reference camera at −X,
 `RefMap(front_is_right=True)`. Parts seen in the photo live on −X (exhaust, visible covers);

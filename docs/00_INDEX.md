@@ -1,32 +1,34 @@
 # Docs index — read this first
 
-Blender Workbench = headless Blender + a Python library (`workbench/`) + a proven process for
-building **reference-accurate** 3D assets (vehicles, buildings, characters, props), animations
-and videos. Everything is code: `projects/<ASSET>/*.py` is the source, `.blend/.glb` are outputs.
+Blender Workbench = headless Blender + a Python library (`workbench/`) + a staged, gated process
+for building **reference-accurate, game-ready** 3D assets (vehicles, buildings, characters, props),
+animations and videos. Everything is code: `projects/<ASSET>/*.py` is the source, `.blend/.glb`
+are outputs, `report.json` + `python wb.py gate` decide what is done.
 
-## Reading order for a new task
+**Agents: start with `.claude/skills/blender-workbench/SKILL.md`** (the checklist) and open the
+documents below only when a step points to them.
 
-| Step | Read | Why |
-|------|------|-----|
-| 1 | `01_WORKFLOW.md` | the two-stage loop, phases, gates, milestones — non-negotiable |
-| 2 | `09_LESSONS_LEARNED.md` | mistakes already paid for; skim every time |
-| 3 | `03_REFERENCE_ANALYSIS.md` | how to turn photos into metres (scale, side, tilt, landmarks) |
-| 4 | `06_CATEGORIES.md` (your section) | part breakdown + pitfalls per asset type |
-| 5 | `04_MODELING_TOOLKIT.md` | which builder for which shape; library API |
-| 6 | `02_STANDARDS.md` | axes, units, naming, collections, budgets, materials |
-| 7 | `05_VALIDATION.md` | overlays, intersection pairs, checks, report.json |
-| as needed | `07_ANIMATION_AND_VIDEO.md`, `08_BLENDER_API_NOTES.md` | anim/video; Blender 5.x gotchas |
-| materials / imports | `11_ASSETS_AND_PBR.md` | PBR texture sets in palettes (`dict(pbr=...)`), `wb.py pbr preview`, importing / fitting / decimating downloaded models |
-| end of job | `10_PRESENTATION.md` | studio stage (cyclorama + light rig + hero cams): clay shape review, final renders, turntable |
-| example | `case_studies/VEH_Gemini_Motorcycle.md` | a complete worked project with real numbers |
+| Doc | Open when |
+|-----|-----------|
+| `01_WORKFLOW.md` | the stage model S0–S5, commands, correction loop, legacy migration |
+| `09_LESSONS_LEARNED.md` | index table at the top — skim your category's JUDGEMENT lessons |
+| `03_REFERENCE_ANALYSIS.md` | S0: scale, side, tilt, measuring edges (mask / profile / snap) |
+| `06_CATEGORIES.md` | part breakdown + pitfalls per asset type |
+| `04_MODELING_TOOLKIT.md` | which builder for which shape, stage profiles, Part registry, module map |
+| `02_STANDARDS.md` | axes, units, naming + stage suffixes, collections, budgets, materials |
+| `05_VALIDATION.md` | every check id, thresholds, report.json, gate rules |
+| `12_GAME_READY.md` | S4: atlas, bake, LODs, collision, engine naming, exports |
+| `07_ANIMATION_AND_VIDEO.md`, `08_BLENDER_API_NOTES.md` | anim/video; Blender 5.x gotchas |
+| `11_ASSETS_AND_PBR.md` | PBR texture sets in palettes, importing / fitting downloaded models |
+| `10_PRESENTATION.md` | S5 studio renders, turntable |
+| `case_studies/VEH_Gemini_Motorcycle.md` | a complete (legacy two-stage) project with real numbers |
+| `projects/PROP_AK_Rifle` | the reference implementation of the staged pipeline (S1–S4 PASS) |
 
 ## Prompts for the user (and for image / coding AIs)
-
-`prompts/` — master prompts: build a modelling cheatsheet with an image generator, start a
-modelling job from photo + cheatsheet, category packs, iteration / fix prompts.
+`prompts/` — master prompts: modelling cheatsheet with an image generator, starting a modelling
+job from photo + cheatsheet, category packs, iteration / fix prompts.
 
 ## Priority when documents disagree
-
 1. the user's explicit request  2. the reference photo  3. `project.md` of the asset
 4. category section (`06`)  5. `02_STANDARDS.md`  6. everything else.
-Knowingly breaking a rule → write it under `waivers` in `report.json` with the reason.
+Knowingly breaking a rule → `parts.GATES` override or a `waivers` note with the reason.

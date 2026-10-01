@@ -21,8 +21,8 @@ python wb.py present <ASSET> --shots HERO_FRONT_34,SIDE        # chosen shots on
 Input: `output/<ASSET>/blend/<ASSET>.blend` (the final model, not modified).
 Output: `output/<ASSET>/presentation/<style>_<shot>.png`, `<style>_sheet.png`,
 `output/<ASSET>/video/<style>_turntable.mp4`, `output/<ASSET>/blend/<ASSET>_PRESENTATION.blend`
-(open it in the GUI to inspect the stage). Only HIGH collections are shown; LOW, guides,
-reference and temp collections are hidden.
+(open it in the GUI to inspect the stage). Only the finished model is shown (S3 DETAIL, or HIGH
+in legacy projects); S1/S2/S4 stage collections, collision, guides, reference and temp are hidden.
 
 ## What the stage contains
 | Element | Design | Why |

@@ -1,0 +1,60 @@
+{
+  "status": "S1_GATE_FAILED",
+  "stages_passed": [],
+  "sources": {
+    "REAL_REFERENCE.png": {
+      "size_px": [
+        963,
+        1200
+      ],
+      "sha256": "030673996b6130c51582c18674dae04cfdf5621951b13117fb8d9f84f99e527a"
+    },
+    "MODELING_CHEATSHEET.png": {
+      "size_px": [
+        1672,
+        941
+      ],
+      "sha256": "f7ac89de42e0b082ae07ccce3d9965504b3ad22abda5c218fcdfca0f8df3bf47"
+    },
+    "FACTORY_BLUEPRINT.png": {
+      "size_px": [
+        1280,
+        906
+      ],
+      "sha256": "64476ceda896ae0c6266be7e250234ed6ee3f742742599ce8a465c232bfef0ce"
+    }
+  },
+  "crop_rects_xyxy": {
+    "REF_REAR.png": [
+      0,
+      0,
+      963,
+      399
+    ],
+    "REF_FRONT.png": [
+      0,
+      399,
+      963,
+      839
+    ],
+    "REF_FRONT_ALT.png": [
+      0,
+      839,
+      963,
+      1200
+    ]
+  },
+  "factory_dimensions_mm": {
+    "length": 4330,
+    "width": 1665,
+    "height": 1370,
+    "wheelbase": 2570,
+    "track_front": 1370,
+    "track_rear": 1365
+  },
+  "blockers": [
+    "S1 R02 p95 exceeds 14px; six correction passes exhausted",
+    "Camera fit mean error 12.59px",
+    "Photo mask manually traced, not independently segmented"
+  ]
+}

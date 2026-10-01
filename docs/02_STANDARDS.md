@@ -12,37 +12,44 @@
 
 ## Folders
 ```
-projects/<ASSET>/   project.md  landmarks.py  parts.py  stage1.py  stage2.py  build.py  report.json  ref/
-output/<ASSET>/     blend/<ASSET>_00_SETUP … _05_FINAL_GEOMETRY.blend, <ASSET>.blend
-                    glb/<ASSET>.glb   renders/   video/   work/stage1|stage2 (review images)
+projects/<ASSET>/   project.md  landmarks.py  parts.py  build.py  report.json  ref/ (REAL_REFERENCE.png, REF_MASK.png)
+output/<ASSET>/     blend/<ASSET>_S0_SETUP|S1_PRIMITIVE|S2_LOWPOLY|S3_DETAIL|S4_GAME.blend, <ASSET>.blend (hero S3)
+                    glb/<ASSET>_LOD0..2.glb, <ASSET>_hero.glb   fbx/ (unreal)   textures/ (T_<ASSET>_base|orm|normal.png)
+                    renders/   video/   presentation/   work/s1..s4 (review + gate images)
 ```
-Milestones: `00_SETUP, 01_GLOBAL_BLOCKOUT, 02_COMPLETE_LOW, STAGE_01_LOW, 03_HIGH_PRIMARY,
-04_HIGH_MECHANICAL, 05_FINAL_GEOMETRY` via `paths.milestone(asset, tag)`. Never overwrite the only
-good state — milestones are separate files.
+Milestones: one per stage via `paths.milestone(asset, stages.milestone_tag(n))`; each stage opens the
+previous one, so a stage can be rebuilt alone (`wb.py build A --stage 3`). Never overwrite the only
+good state. Legacy projects keep `00_SETUP … 05_FINAL_GEOMETRY`.
 
 ## Collections
-`00_REFERENCE 01_GUIDES 02_LOW_PRIMARY 03_LOW_SECONDARY 04_LOW_MECHANICAL 05_HIGH_BODY
-06_HIGH_MECHANICAL 07_DETAILS 08_TEMP 09_PRESENTATION` (`scene.setup_collections()`).
+`00_REFERENCE 01_GUIDES 10_S1_PRIMITIVE 20_S2_LOWPOLY 30_S3_DETAIL 40_S4_GAME 41_S4_COLLISION
+08_TEMP 09_PRESENTATION` (`stages.COLLECTIONS`). Earlier stages stay in the file, hidden.
+Legacy: `02_LOW_* … 07_DETAILS` (`scene.COLLECTIONS`).
 
 ## Naming
 - Assets: `VEH_ ENV_ ARCH_ CHR_ PROP_ ANIM_` + PascalCase (`VEH_Gemini_Motorcycle`).
 - Parts: `GROUP_Part[_Detail][_L|_R|_FL|_RR]` — e.g. `BODY_Tank`, `FRAME_Swingarm_L`,
   `ENGINE_Cover_Main_R`, `WHEEL_Front_Tire`, `CTRL_Grip_L`, `ARCH_Wall_North`, `CHR_Body`.
-- Stage 1 objects: `_LOW` suffix. Guessed / hidden geometry: `UNCERTAIN_` prefix.
+- Stage suffix (added by `stages.nm(P, name)` / the pipeline): `_PRIM` (S1), `_LP` (S2), `_HP` (S3),
+  `_LOD0.._LOD2` (S4 game objects); static game parts merge into `<ASSET>_Body_LODn`.
+  Bake matching and intersection pairs use the base name (`stages.base_name`). Legacy: `_LOW`.
+- Collision: engine naming (docs/12): `…-convcolonly` (Godot), `UCX_…` (Unreal), `…_Collider` (Unity).
+- Guessed / hidden geometry: `UNCERTAIN_` prefix. Temp: `TEMP_*` (removed by the pipeline).
 - Fasteners: `FASTENER_<FAMILY>_###` sharing meshes `BOLT_M6/M8/M10`, `NUT`, `WASHER`.
-- Materials: `MAT_<PURPOSE>` (`MAT_BODY_RED`, `MAT_RUBBER`). Guides: `GUIDE_*`. Temp: `TEMP_*`.
-- No `Cube.001`, no spaces.
+- Materials: `MAT_<PURPOSE>`; baked game material `MAT_<ASSET>_Baked`. Textures `T_<ASSET>_<map>`.
+- No `Cube.001`, no spaces (gate N01).
 
-## Budgets (triangles, evaluated = modifiers applied)
-| Asset | Stage 1 LOW | Stage 2 HIGH target | max |
-|-------|-------------|---------------------|-----|
-| hero vehicle (car/moto) | 5k–15k | 40k–100k | 150k |
-| background vehicle | 2k–5k | 8k–20k | 30k |
-| building exterior | 2k–10k | 15k–60k | 100k |
-| modular wall/floor piece | <1k | 2k–8k | 15k |
-| character | 2k–6k | 15k–40k | 60k |
-| small / large prop | <1k / <3k | 0.5k–2.5k / 3k–10k | 5k / 25k |
-Subsurf: viewport/export level 1, render level 2 — keeps GLB inside budget.
+## Budgets (evaluated triangles = modifiers applied) — `workbench/tables.py` BUDGETS
+| key (`parts.CATEGORY`) | S1 max | S2 = LOD0 target | S2 max | S3 max | tex | LOD0 glb |
+|------------------------|--------|------------------|--------|--------|-----|----------|
+| hero_vehicle | 3k | 15k–60k | 80k | 150k | 2048 | 12 MB |
+| background_vehicle | 1.5k | 4k–12k | 20k | 30k | 1024 | 4 MB |
+| building | 2k | 5k–30k | 50k | 100k | 2048 | 10 MB |
+| modular (wall/floor kit) | 0.3k | 0.5k–4k | 8k | 15k | 1024 | 2 MB |
+| character | 1.5k | 8k–30k | 40k | 60k | 2048 | 10 MB |
+| hero_prop (FPS weapon …) | 1.5k | 4k–15k | 20k | 60k | 2048 | 6 MB |
+| small_prop / large_prop | 0.3k / 0.8k | 0.3k–2k / 1.5k–8k | 3k / 12k | 5k / 25k | 512 / 1024 | 1 / 3 MB |
+LOD1 / LOD2 = 50 % / 25 % of LOD0 by default. Subsurf on S3: viewport/export level 1, render level 2.
 
 ## Materials
 - Principled BSDF only, values not procedural nodes (glTF-safe). Palette in `parts.PALETTE`,

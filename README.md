@@ -4,16 +4,33 @@ Blender'ı arka planda (headless) çalıştırıp **kodla** 3D model, animasyon 
 tezgahı. Motor, araba, bina, karakter, obje... Her model tekrar üretilebilir Python kaynak kodudur.
 `.blend`, `.glb`, render ve videolar bu koddan çıkan çıktılardır.
 
-Asıl fark: modeller **gerçek fotoğrafa göre ölçülerek** yapılır. Fotoğraftaki pikseller metreye
-çevrilir, model referans kamerasından render alınıp fotoğrafın üstüne bindirilir ve sayılarla
-doğrulanır.
+Asıl fark: modeller **gerçek fotoğrafa göre ölçülerek** yapılır. Fotoğraftaki kenarlar kodla
+ölçülür (maske + %50 kuralı), pikseller metreye çevrilir, model referans kamerasından render alınıp
+fotoğraf siluetiyle **sayısal olarak** karşılaştırılır (IoU, sınır hatası px). Bir aşamanın bitip
+bitmediğine agent değil `python wb.py gate` karar verir.
+
+## Aşamalar
+| Aşama | İçerik |
+|-------|--------|
+| S0 INTAKE | referans analizi, ölçülmüş landmark'lar (px), foto maskesi |
+| S1 PRIMITIVE | kutu / silindir / sadeleştirilmiş dış hatlarla kütleler ve oranlar |
+| S2 LOWPOLY | gerçek formlar, temiz topoloji, UV atlas = oyunun LOD0'ı |
+| S3 DETAIL | bevel, subsurf, cıvata, nervür = hero model + bake kaynağı |
+| S4 GAME | S3→S2 bake (base / ORM / normal), LOD1-2, collision, Godot/Unity/Unreal export |
+| S5 PRESENT | stüdyo render'ları |
+
+Her aşama aynı builder'ları farklı profille çalıştırır, `report.json`'a sayıları yazar; gate'ler
+(siluet, stage kayması, mesh hijyeni, bütçe, çakışma, UV, LOD, dosya boyutu) geçmeden sonraki
+aşamaya geçilmez. Referans uygulama: `projects/PROP_AK_Rifle`.
 
 ## Hızlı başlangıç
 
 ```bash
 python wb.py doctor                                  # Blender + Pillow kontrolü
 python wb.py test                                    # kütüphane testi (render + video + glb)
-python wb.py build VEH_Gemini_Motorcycle             # örnek projeyi baştan üret
+python wb.py build PROP_AK_Rifle                     # örnek projeyi S1-S4 baştan üret
+python wb.py gate PROP_AK_Rifle                      # aşama gate'leri: PASS/FAIL
+python wb.py build PROP_AK_Rifle --until 3           # hızlı iterasyon (bake yok)
 python wb.py new VEH_Benim_Arabam --category vehicle # yeni proje iskeleti
 python wb.py present VEH_Gemini_Motorcycle            # profesyonel stüdyo render'ları (docs/10)
 ```
@@ -51,10 +68,11 @@ cyclorama (ufuk çizgisi yok), modele göre ölçeklenen 6 ışık (key softbox,
 Stiller: `studio_dark`, `studio_light`, `neutral_grey`, `clay` (şekil incelemesi). Cycles GPU
 (final) veya EEVEE (hızlı / turntable video). Ayrıntı: `docs/10_PRESENTATION.md`.
 
-## Örnek: VEH_Gemini_Motorcycle
-Tek bir yan fotoğraftan yeniden kurulan özel Honda motosiklet. Stage 1: 9.8k üçgen, Stage 2: 65k
-üçgen, 8 materyal, 0 çakışma, referans kamera hatası 0 px. Anlatımı:
-`docs/case_studies/VEH_Gemini_Motorcycle.md`.
+## Örnekler
+- `PROP_AK_Rifle` (aşamalı pipeline): tek yan fotoğraftan AKM; S1 420 / S2 (LOD0) ~4.6k / S3 ~18.5k
+  üçgen, fotoğraf siluetine IoU ~0.95, 2048 px bake, LOD1-2, 6 convex collider, Godot-hazır glb.
+- `VEH_Gemini_Motorcycle` (eski iki aşamalı yapı): Stage 1: 9.8k üçgen, Stage 2: 65k üçgen,
+  8 materyal, 0 çakışma. Anlatımı: `docs/case_studies/VEH_Gemini_Motorcycle.md`.
 
 ## Gereksinimler
 Blender 5.2 LTS (başka yerdeyse `BLENDER_EXECUTABLE` ortam değişkeni), Python 3 + `pip install pillow numpy`.

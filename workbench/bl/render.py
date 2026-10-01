@@ -4,6 +4,8 @@ Blender 5.2: engine ids 'BLENDER_WORKBENCH', 'BLENDER_EEVEE', 'CYCLES'.
 Video: image_settings.media_type = 'VIDEO' then file_format = 'FFMPEG' (reset to 'IMAGE' after).
 """
 import os
+from contextlib import contextmanager
+
 import bpy
 
 
@@ -37,9 +39,13 @@ def _still(path, rgba=False):
     bpy.ops.render.render(write_still=True)
 
 
-def workbench(cam, path, mode="MATERIAL", transparent=False, res=(1080, 720), xray=False):
-    """mode CLAY (single grey) | MATERIAL (viewport colours). transparent -> RGBA (for overlays)."""
+def workbench(cam, path, mode="MATERIAL", transparent=False, res=None, xray=False):
+    """mode CLAY (single grey) | MATERIAL (viewport colours). transparent -> RGBA (for overlays).
+    res=None: the camera's own image size (reference cameras store the photo size in
+    cam["wb_image_size"], so overlays can never be stretched - lesson 26), else 1080x720."""
     sc = bpy.context.scene
+    if res is None:
+        res = tuple(cam["wb_image_size"]) if "wb_image_size" in cam else (1080, 720)
     _world()
     sc.camera = cam
     sc.render.engine = "BLENDER_WORKBENCH"
@@ -48,6 +54,60 @@ def workbench(cam, path, mode="MATERIAL", transparent=False, res=(1080, 720), xr
     sc.render.film_transparent = transparent
     _workbench_shading(mode, xray)
     _still(path, transparent)
+
+
+@contextmanager
+def only(objs):
+    """Render exactly `objs`: every other renderable object is hidden inside the block, restored after."""
+    keep = {o.name for o in objs}
+    hidden = [o for o in bpy.context.scene.objects
+              if o.type in ("MESH", "CURVE", "SURFACE", "META", "FONT") and o.name not in keep and not o.hide_render]
+    for o in hidden:
+        o.hide_render = True
+    was = {o.name: o.hide_render for o in objs}
+    for o in objs:
+        o.hide_render = False
+    try:
+        yield
+    finally:
+        for o in hidden:
+            o.hide_render = False
+        for o in objs:
+            o.hide_render = was[o.name]
+
+
+def silhouette(cam, objs, path, res=None):
+    """Alpha-only render of exactly `objs` from cam -> RGBA PNG (pipeline gates, silhouette.metrics)."""
+    with only(objs):
+        workbench(cam, path, "CLAY", transparent=True, res=res)
+    return path
+
+
+def read_alpha(path):
+    """RGBA PNG -> float alpha array [v, u] (top row first) inside Blender (no PIL needed)."""
+    import numpy as np
+    img = bpy.data.images.load(path, check_existing=False)
+    w, h = img.size
+    px = np.empty(w * h * 4, np.float32)
+    img.pixels.foreach_get(px)
+    bpy.data.images.remove(img)
+    return px.reshape(h, w, 4)[::-1, :, 3]
+
+
+def write_rgb(arr, path):
+    """uint8 (H, W, 3) array -> PNG inside Blender (no PIL needed)."""
+    import numpy as np
+    h, w = arr.shape[:2]
+    img = bpy.data.images.new("TMP_write_rgb", w, h, alpha=False)
+    rgba = np.ones((h, w, 4), np.float32)
+    rgba[..., :3] = np.asarray(arr, np.float32)[::-1] / 255.0
+    img.pixels.foreach_set(rgba.ravel())
+    img.filepath_raw = path
+    img.file_format = "PNG"
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    img.save()
+    bpy.data.images.remove(img)
+    return path
 
 
 def review_set(cams, folder, tag, modes=("CLAY", "MATERIAL")):
