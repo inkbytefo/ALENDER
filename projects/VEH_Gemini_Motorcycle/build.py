@@ -1,9 +1,4 @@
-"""Full reproducible build: Stage 1 LOW -> gate -> Stage 2 HIGH.
-    python wb.py build VEH_Gemini_Motorcycle
-"""
-import os
-import runpy
+"""Staged build of VEH_Gemini_Motorcycle:   python wb.py build VEH_Gemini_Motorcycle [--stage N|--from N|--until N]"""
+from workbench.bl import pipeline
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-runpy.run_path(os.path.join(HERE, "stage1.py"), run_name="__main__")
-runpy.run_path(os.path.join(HERE, "stage2.py"), run_name="__main__")
+pipeline.main(__file__)

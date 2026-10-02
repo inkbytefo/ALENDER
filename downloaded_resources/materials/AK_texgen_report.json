@@ -1,0 +1,58 @@
+[
+ {
+  "set": "AK_SteelParkerized_1K-PNG",
+  "source": "Koyu Grafit Metal Dokusu.png",
+  "seam_before": [
+   1.08,
+   0.76
+  ],
+  "seam_after": [
+   0.97,
+   0.99
+  ],
+  "metal_mean": 1.0,
+  "roughness_mean": 0.5,
+  "roughness_range": [
+   0.4,
+   0.6
+  ],
+  "albedo_mean_srgb": [
+   0.258,
+   0.258,
+   0.258
+  ],
+  "normal_mean": [
+   0.5,
+   0.501,
+   0.964
+  ]
+ },
+ {
+  "set": "AK_PolymerStipple_1K-PNG",
+  "source": "Koyu Kömür Rengi İnce Granüllü Doku.png",
+  "seam_before": [
+   2.56,
+   1.84
+  ],
+  "seam_after": [
+   0.93,
+   0.99
+  ],
+  "metal_mean": 0.0,
+  "roughness_mean": 0.62,
+  "roughness_range": [
+   0.54,
+   0.683
+  ],
+  "albedo_mean_srgb": [
+   0.142,
+   0.142,
+   0.142
+  ],
+  "normal_mean": [
+   0.5,
+   0.496,
+   0.924
+  ]
+ }
+]

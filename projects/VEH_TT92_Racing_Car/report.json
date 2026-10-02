@@ -7,12 +7,12 @@
     "warnings": 0
   },
   "metrics": {
-    "tris_high": 97376,
-    "tris_low": 16830,
+    "tris_high": 96736,
+    "tris_low": 16798,
     "materials": 8,
     "bbox_m": [
       1.802,
-      3.58,
+      3.341,
       0.836
     ],
     "objects_high": 250,
@@ -54,13 +54,13 @@
       "id": "U08",
       "severity": "BLOCKER",
       "result": "PASS",
-      "detail": "97376 tris (max 120000)"
+      "detail": "96736 tris (max 120000)"
     },
     {
       "id": "U09",
       "severity": "WARN",
       "result": "PASS",
-      "detail": "97376 tris (target (40000, 100000))"
+      "detail": "96736 tris (target (40000, 100000))"
     },
     {
       "id": "U10",
@@ -103,10 +103,10 @@
   "style": "realistic_game",
   "stage1": {
     "objects": 121,
-    "tris": 16830,
+    "tris": 16798,
     "dims": [
       1.802,
-      3.58,
+      3.341,
       0.836
     ],
     "bbox_min": [

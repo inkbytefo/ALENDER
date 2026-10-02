@@ -1,7 +1,7 @@
 """
 Build VEH_TT92_Racing_Car.
 
-    python wb.py build VEH_TT92_Racing_Car                 all stages 1-5
+    python wb.py build VEH_TT92_Racing_Car                 all stages 1-7 (stage 7 bakes 4K textures: slow)
     python wb.py build VEH_TT92_Racing_Car --stage 4       one stage (needs the milestone before it)
     python wb.py build VEH_TT92_Racing_Car --from 2        stage 2 to the end
     python wb.py build VEH_TT92_Racing_Car --until 3       stage 1 to 3
@@ -10,7 +10,9 @@ Build VEH_TT92_Racing_Car.
     2 stage2_body.py        wheels, body shell + cuts, nose mouth  -> 03_HIGH_PRIMARY
     3 stage3_mechanical.py  exhaust, suspension, engine            -> 04_HIGH_MECHANICAL
     4 stage4_details.py     cockpit, details, front, fasteners, checks, renders, GLB, report
-    5 stage5_workspace.py   clean GUI file                         -> _WORKSPACE.blend
+    5 stage5_paint.py       master material + 14 PBR instances on the HIGH model
+    6 stage6_workspace.py   clean GUI file                         -> _WORKSPACE.blend
+    7 stage7_game.py        Godot package: 7 merged meshes, UV atlases, 4K bakes, GLB + FBX
 """
 import os
 import sys
@@ -18,7 +20,7 @@ import runpy
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 STAGES = {1: "stage1_blockout.py", 2: "stage2_body.py", 3: "stage3_mechanical.py",
-          4: "stage4_details.py", 5: "stage5_workspace.py"}
+          4: "stage4_details.py", 5: "stage5_paint.py", 6: "stage6_workspace.py", 7: "stage7_game.py"}
 
 args = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 

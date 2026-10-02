@@ -33,3 +33,29 @@ airbox, downtube, tail crossmembers, left-side engine covers, filler cap, shock 
 
 ## Deliverables
 output/VEH_Gemini_Motorcycle/blend (00…05, STAGE_01_LOW, final), glb/, renders/, report.json
+
+## Finish steps (2026-10-01) - run after `python wb.py build VEH_Gemini_Motorcycle` (S1-S3 gated)
+```bash
+python wb.py run projects/VEH_Gemini_Motorcycle/finish_paint.py       # master material + 12 instances on S3 DETAIL
+python wb.py run projects/VEH_Gemini_Motorcycle/finish_workspace.py   # clean GUI file ..._WORKSPACE.blend
+python wb.py run projects/VEH_Gemini_Motorcycle/finish_game.py        # Godot package (TEX=512 for a quick test)
+python wb.py present VEH_Gemini_Motorcycle --style studio_dark
+```
+| file | role |
+|------|------|
+| `paint.py` | `INSTANCES` (12 master-material instances), `BY_OLD` (flat material -> instance), `OVERRIDES` (by part name) |
+| `finish_paint.py` | applies the paint to the hero blend, checks (all slots painted, normal maps wired), Cycles review renders |
+| `finish_workspace.py` | `..._WORKSPACE.blend`: final model only, collections by function, README inside |
+| `finish_game.py` | `output/.../godot/`: GLB + FBX, one 4K texture set, ORM + Standard `.tres`, re-import check |
+| `GODOT.md` | import guide copied into the package |
+
+Paint (photo): gloss candy red tank, gloss black bodywork, satin black frame / rims / fork, anthracite cast
+engine, raw heat-tinted stainless headers, carbon muffler, brushed steel discs and fasteners, chrome fork
+tubes, dark leather seat, glowing tail light; glass stays a plain transparent material.
+Texture sets come from `projects/VEH_TT92_Racing_Car/material` (AI albedos, derived maps - see its README)
+and the shared library; the red / black paint use the clean chrome set with a tint.
+Numbers: 249 parts, 70,972 tris; game package 4 meshes (Body, Wheel_Front, Wheel_Rear, Glass) + hull,
+atlas 661-674 px/m at 4K (coverage 38 %). Tested in Godot 4.7.2 (`GODOTTESTING/testingarea/test_gemini.tscn`).
+Not done: tank "HONDA X" graphic, tyre tread, the S4 GAME stage of the pipeline (LODs) - `finish_game.py`
+replaces it for the painted model. Model geometry was reviewed and left unchanged.
+

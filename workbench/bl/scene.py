@@ -71,6 +71,8 @@ def guides(points, collection="01_GUIDES", size=0.03):
 
 def set_origin(ob, pt):
     """Move object origin to world point pt without moving geometry (single-user meshes only)."""
+    if ob.data and ob.data.users > 1:
+        return
     pt = Vector(pt)
     ob.data.transform(Matrix.Translation(-(pt - ob.matrix_world.translation)))
     ob.matrix_world = Matrix.Translation(pt)
@@ -92,6 +94,7 @@ def root(name, collection="09_PRESENTATION"):
 
 
 def parent_keep(obs, parent):
+    bpy.context.view_layer.update()
     for ob in obs:
         mw = ob.matrix_world.copy()
         ob.parent = parent

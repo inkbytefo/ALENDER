@@ -54,6 +54,8 @@ def copies(objs, lod, coll, keep_uv="UV_Bake"):
 def set_pivots(objs_by_base, pivots):
     """Origins: pivots {base: callable() -> xyz} for moving parts, bbox centre for the rest."""
     for base, ob in objs_by_base.items():
+        if ob.data and ob.data.users > 1:
+            continue
         fn = pivots.get(base)
         if fn:
             scene.set_origin(ob, fn())
@@ -195,10 +197,12 @@ def _undo_emission(undo):
 
 
 def bake(high, low_objs, folder, size=2048, prefix="T", extrusion=None, margin=8, ao_samples=32,
-         ao_distance=None):
+         ao_distance=None, router=None):
     """Cycles selected-to-active bake of the DETAIL meshes onto the game meshes' atlas ("UVMap").
     Writes <prefix>_base.png (sRGB), _normal.png (tangent, OpenGL +Y), _orm.png (R=AO, G=rough,
-    B=metal) into folder and returns {map: path}. The game meshes are not modified."""
+    B=metal) into folder and returns {map: path}. The game meshes are not modified.
+    router: a master.BakeRouter when the DETAIL meshes use master-material instances; base / roughness /
+    metallic are then baked as EMIT of the master's own inputs (lighting-free, metals not black)."""
     from workbench.bl.presentation import use_gpu
     sc = bpy.context.scene
     os.makedirs(folder, exist_ok=True)
@@ -240,15 +244,24 @@ def bake(high, low_objs, folder, size=2048, prefix="T", extrusion=None, margin=8
         sc.cycles.samples = ao_samples if btype == "AO" else (8 if btype == "NORMAL" else 4)
         kw = dict(type=btype, use_selected_to_active=True, cage_extrusion=extrusion, margin=margin,
                   use_clear=True, target="IMAGE_TEXTURES")
-        if btype == "DIFFUSE":
+        undo = []
+        if router is not None:
+            routed = key in ("base", "rough", "metal")
+            router.route(key if routed else None)
+            if routed:
+                kw["type"] = "EMIT"
+        elif btype == "EMIT":
+            undo = _metal_to_emission(mats)
+        if kw["type"] == "DIFFUSE":
             kw["pass_filter"] = {"COLOR"}
-        if btype == "NORMAL":
+        if kw["type"] == "NORMAL":
             kw["normal_space"] = "TANGENT"
-        undo = _metal_to_emission(mats) if btype == "EMIT" else []
         try:
             bpy.ops.object.bake(**kw)
         finally:
             _undo_emission(undo)
+            if router is not None:
+                router.route(None)
         imgs[key] = img
         times[key] = round(time.time() - t0, 1)
     out = {}

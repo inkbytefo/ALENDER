@@ -1,11 +1,12 @@
 """
-Shared helpers of the stage scripts (stage1_blockout.py ... stage5_workspace.py).
+Shared helpers of the stage scripts (stage1_blockout.py ... stage6_workspace.py).
 
 Milestones (output/VEH_TT92_Racing_Car/blend/VEH_TT92_Racing_Car_<TAG>.blend):
     stage 1  00_SETUP, 01_GLOBAL_BLOCKOUT, 02_COMPLETE_LOW
     stage 2  03_HIGH_PRIMARY          stage 3  04_HIGH_MECHANICAL
     stage 4  05_FINAL_GEOMETRY + VEH_TT92_Racing_Car.blend + glb + report.json
-    stage 5  VEH_TT92_Racing_Car_WORKSPACE.blend   (the clean file to work in)
+    stage 5  VEH_TT92_Racing_Car.blend repainted (master material, paint.py)
+    stage 6  VEH_TT92_Racing_Car_WORKSPACE.blend   (the clean file to work in)
 Each stage opens the milestone of the stage before it, so any stage can be re-run on its own.
 """
 import os

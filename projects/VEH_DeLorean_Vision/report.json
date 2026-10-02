@@ -1,0 +1,898 @@
+{
+  "asset": "VEH_DeLorean_Vision",
+  "pipeline": "stages-v1",
+  "stages": {
+    "1": {
+      "stage": "PRIMITIVE",
+      "summary": {
+        "result": "PASS",
+        "blockers_failed": 0,
+        "warnings": 0
+      },
+      "inputs_hash": "3646d6ecd08e",
+      "time": "2026-10-02 22:57:43",
+      "metrics": {
+        "objects": 47,
+        "tris": 2764,
+        "dims": [
+          2.164,
+          4.5145,
+          1.1545
+        ],
+        "bbox_min": [
+          -1.082,
+          -2.27,
+          0.0
+        ],
+        "top_tris": [
+          [
+            1068,
+            "BODY_Main_PRIM"
+          ],
+          [
+            276,
+            "CABIN_Structure_PRIM"
+          ],
+          [
+            128,
+            "WHEEL_Tire_Rear_R_PRIM"
+          ],
+          [
+            128,
+            "WHEEL_Tire_Rear_L_PRIM"
+          ],
+          [
+            128,
+            "WHEEL_Tire_Front_R_PRIM"
+          ],
+          [
+            128,
+            "WHEEL_Tire_Front_L_PRIM"
+          ],
+          [
+            60,
+            "WHEEL_Rim_Rear_R_PRIM"
+          ],
+          [
+            60,
+            "WHEEL_Rim_Rear_L_PRIM"
+          ],
+          [
+            60,
+            "WHEEL_Rim_Front_R_PRIM"
+          ],
+          [
+            60,
+            "WHEEL_Rim_Front_L_PRIM"
+          ]
+        ],
+        "materials": [
+          "MAT_ALLOY",
+          "MAT_AMBER",
+          "MAT_BLACK",
+          "MAT_GLASS",
+          "MAT_RED",
+          "MAT_RUBBER",
+          "MAT_STEEL",
+          "MAT_WHITE"
+        ],
+        "hygiene": {
+          "non_manifold": 0,
+          "boundary": 0,
+          "loose": 0,
+          "degenerate": 0,
+          "flipped": 0,
+          "inverted": 0,
+          "ngons": 0,
+          "quads": 1250,
+          "tris": 264,
+          "faces": 1514,
+          "ngon_ratio": 0.0
+        }
+      },
+      "checks": [
+        {
+          "id": "U01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "bbox 2.164 x 4.514 x 1.154 m vs target (None, 4.5, 1.16) (+-3%)"
+        },
+        {
+          "id": "U02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all scales 1.0"
+        },
+        {
+          "id": "U03",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "lowest z = 0.0000"
+        },
+        {
+          "id": "U07",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no empty material slots"
+        },
+        {
+          "id": "U08",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "2764 tris (S1 max 3000)"
+        },
+        {
+          "id": "U10",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "8 materials (max 8)"
+        },
+        {
+          "id": "U04",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "0 non-manifold edges ; 0 open edges"
+        },
+        {
+          "id": "U05",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "flipped 0, inverted 0 "
+        },
+        {
+          "id": "U16",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "0 degenerate faces/edges "
+        },
+        {
+          "id": "U11",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "0 loose verts/edges "
+        },
+        {
+          "id": "U12",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "n-gons 0/1514 faces = 0.0% (max 5%)"
+        },
+        {
+          "id": "N01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all names GROUP_Part_PRIM"
+        },
+        {
+          "id": "H01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no subsurf on plates / boxes / extrusions"
+        },
+        {
+          "id": "X01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 critical intersections"
+        }
+      ]
+    },
+    "2": {
+      "stage": "LOWPOLY",
+      "summary": {
+        "result": "PASS",
+        "blockers_failed": 0,
+        "warnings": 0
+      },
+      "inputs_hash": "3646d6ecd08e",
+      "time": "2026-10-02 22:58:04",
+      "metrics": {
+        "objects": 291,
+        "tris": 41900,
+        "dims": [
+          2.164,
+          4.52,
+          1.1617
+        ],
+        "bbox_min": [
+          -1.082,
+          -2.27,
+          0.0
+        ],
+        "top_tris": [
+          [
+            12392,
+            "BODY_Main_LP"
+          ],
+          [
+            3072,
+            "WHEEL_Tire_Rear_R_LP"
+          ],
+          [
+            3072,
+            "WHEEL_Tire_Rear_L_LP"
+          ],
+          [
+            3072,
+            "WHEEL_Tire_Front_R_LP"
+          ],
+          [
+            3072,
+            "WHEEL_Tire_Front_L_LP"
+          ],
+          [
+            1676,
+            "CABIN_Structure_LP"
+          ],
+          [
+            976,
+            "INTERIOR_SteeringRim_LP"
+          ],
+          [
+            768,
+            "WHEEL_Rim_Rear_R_LP"
+          ],
+          [
+            768,
+            "WHEEL_Rim_Rear_L_LP"
+          ],
+          [
+            768,
+            "WHEEL_Rim_Front_R_LP"
+          ]
+        ],
+        "materials": [
+          "MAT_ALLOY",
+          "MAT_AMBER",
+          "MAT_BLACK",
+          "MAT_GLASS",
+          "MAT_RED",
+          "MAT_RUBBER",
+          "MAT_STEEL",
+          "MAT_WHITE"
+        ],
+        "hygiene": {
+          "non_manifold": 0,
+          "boundary": 0,
+          "loose": 0,
+          "degenerate": 0,
+          "flipped": 0,
+          "inverted": 0,
+          "ngons": 0,
+          "quads": 20153,
+          "tris": 1594,
+          "faces": 21747,
+          "ngon_ratio": 0.0
+        },
+        "uv_overlap": {
+          "overlap": 0.0,
+          "outside": 0.0,
+          "coverage": 0.335
+        },
+        "texel": {
+          "min": 126.5,
+          "max": 138.1,
+          "spread": 1.09
+        },
+        "uv": {
+          "area3d_m2": 76.1535,
+          "atlas_coverage": 0.337,
+          "texel_px_per_m_at_2k": 136.2
+        }
+      },
+      "checks": [
+        {
+          "id": "U01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "bbox 2.164 x 4.520 x 1.162 m vs target (None, 4.5, 1.16) (+-2%)"
+        },
+        {
+          "id": "U02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all scales 1.0"
+        },
+        {
+          "id": "U03",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "lowest z = 0.0000"
+        },
+        {
+          "id": "U06",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all meshes have UVs"
+        },
+        {
+          "id": "U07",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no empty material slots"
+        },
+        {
+          "id": "U08",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "41900 tris (S2 max 80000)"
+        },
+        {
+          "id": "U09",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "41900 tris (LOD0 target 15000-60000)"
+        },
+        {
+          "id": "U10",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "8 materials (max 8)"
+        },
+        {
+          "id": "U04",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 non-manifold edges ; 0 open edges"
+        },
+        {
+          "id": "U05",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "flipped 0, inverted 0 "
+        },
+        {
+          "id": "U16",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 degenerate faces/edges "
+        },
+        {
+          "id": "U11",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 loose verts/edges "
+        },
+        {
+          "id": "U12",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "n-gons 0/21747 faces = 0.0% (max 5%)"
+        },
+        {
+          "id": "N01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all names GROUP_Part_LP"
+        },
+        {
+          "id": "H01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no subsurf on plates / boxes / extrusions"
+        },
+        {
+          "id": "X01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 critical intersections"
+        },
+        {
+          "id": "D02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "bbox change vs S1 on axes XYZ: 0.6% (max 4.0%)"
+        },
+        {
+          "id": "U13",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "UV_Bake: overlap 0.00%, outside 0-1 0.00%, coverage 34%"
+        },
+        {
+          "id": "U14",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "texel density 126.5-138.1 px/m at 2k (spread 1.09, max 2.5)"
+        }
+      ]
+    },
+    "3": {
+      "stage": "DETAIL",
+      "summary": {
+        "result": "PASS",
+        "blockers_failed": 0,
+        "warnings": 0
+      },
+      "inputs_hash": "3646d6ecd08e",
+      "time": "2026-10-02 22:58:17",
+      "metrics": {
+        "objects": 299,
+        "tris": 81120,
+        "dims": [
+          2.164,
+          4.52,
+          1.1617
+        ],
+        "bbox_min": [
+          -1.082,
+          -2.27,
+          0.0
+        ],
+        "top_tris": [
+          [
+            17008,
+            "BODY_Main_HP"
+          ],
+          [
+            3072,
+            "WHEEL_Tire_Rear_R_HP"
+          ],
+          [
+            3072,
+            "WHEEL_Tire_Rear_L_HP"
+          ],
+          [
+            3072,
+            "WHEEL_Tire_Front_R_HP"
+          ],
+          [
+            3072,
+            "WHEEL_Tire_Front_L_HP"
+          ],
+          [
+            2936,
+            "CABIN_Structure_HP"
+          ],
+          [
+            2048,
+            "WHEEL_Rim_Rear_R_HP"
+          ],
+          [
+            2048,
+            "WHEEL_Rim_Rear_L_HP"
+          ],
+          [
+            2048,
+            "WHEEL_Rim_Front_R_HP"
+          ],
+          [
+            2048,
+            "WHEEL_Rim_Front_L_HP"
+          ]
+        ],
+        "materials": [
+          "MAT_ALLOY",
+          "MAT_AMBER",
+          "MAT_BLACK",
+          "MAT_GLASS",
+          "MAT_RED",
+          "MAT_RUBBER",
+          "MAT_STEEL",
+          "MAT_WHITE"
+        ],
+        "hygiene": {
+          "non_manifold": 0,
+          "boundary": 0,
+          "loose": 0,
+          "degenerate": 0,
+          "flipped": 0,
+          "inverted": 0,
+          "ngons": 44,
+          "quads": 39675,
+          "tris": 1638,
+          "faces": 41357,
+          "ngon_ratio": 0.0011
+        }
+      },
+      "checks": [
+        {
+          "id": "U01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "bbox 2.164 x 4.520 x 1.162 m vs target (None, 4.5, 1.16) (+-2%)"
+        },
+        {
+          "id": "U02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all scales 1.0"
+        },
+        {
+          "id": "U03",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "lowest z = 0.0000"
+        },
+        {
+          "id": "U06",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all meshes have UVs"
+        },
+        {
+          "id": "U07",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no empty material slots"
+        },
+        {
+          "id": "U08",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "81120 tris (S3 max 150000)"
+        },
+        {
+          "id": "U10",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "8 materials (max 8)"
+        },
+        {
+          "id": "U04",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 non-manifold edges ; 0 open edges"
+        },
+        {
+          "id": "U05",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "flipped 0, inverted 0 "
+        },
+        {
+          "id": "U16",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "0 degenerate faces/edges "
+        },
+        {
+          "id": "U11",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 loose verts/edges "
+        },
+        {
+          "id": "U12",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "n-gons 44/41357 faces = 0.1% (max 5%)"
+        },
+        {
+          "id": "N01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all names GROUP_Part_HP"
+        },
+        {
+          "id": "H01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no subsurf on plates / boxes / extrusions"
+        },
+        {
+          "id": "X01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 critical intersections"
+        },
+        {
+          "id": "D02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "bbox change vs S2 on axes XYZ: 0.0% (max 1.5%)"
+        },
+        {
+          "id": "U15",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "hero glb: exported 300 objs / reimported 300; materials 8/8"
+        }
+      ]
+    },
+    "4": {
+      "stage": "GAME",
+      "summary": {
+        "result": "PASS",
+        "blockers_failed": 0,
+        "warnings": 0
+      },
+      "inputs_hash": "3646d6ecd08e",
+      "time": "2026-10-02 23:00:51",
+      "metrics": {
+        "bake": {
+          "size": 4096,
+          "device": "OPTIX",
+          "seconds_per_map": {
+            "base": 19.3,
+            "normal": 15.0,
+            "ao": 18.6,
+            "rough": 15.4,
+            "metal": 17.2
+          },
+          "extrusion_m": 0.006,
+          "ao_distance_m": 0.3927,
+          "base_mean": [
+            0.272,
+            0.271,
+            0.302
+          ],
+          "normal_mean": [
+            0.501,
+            0.502,
+            0.953
+          ],
+          "ao_encoding": "3-tap denoise, 6-bit AO in an 8-bit ORM PNG",
+          "seconds": 102.7
+        },
+        "lod_tris": {
+          "0": 41900,
+          "1": 20950,
+          "2": 10419
+        },
+        "textures": {
+          "base": "output\\VEH_DeLorean_Vision\\textures\\T_VEH_DeLorean_Vision_base.png",
+          "orm": "output\\VEH_DeLorean_Vision\\textures\\T_VEH_DeLorean_Vision_orm.png",
+          "normal": "output\\VEH_DeLorean_Vision\\textures\\T_VEH_DeLorean_Vision_normal.png"
+        },
+        "glb": {
+          "0": {
+            "bytes": 10736020,
+            "nodes": 12,
+            "meshes": 11,
+            "primitives": 11,
+            "materials": 1,
+            "textures": 3,
+            "images": [
+              [
+                "T_VEH_DeLorean_Vision_normal",
+                4096,
+                4096
+              ],
+              [
+                "T_VEH_DeLorean_Vision_orm",
+                4096,
+                4096
+              ],
+              [
+                "T_VEH_DeLorean_Vision_base",
+                4096,
+                4096
+              ]
+            ],
+            "tris": 42686,
+            "animations": 0,
+            "skins": 0,
+            "node_names": null
+          },
+          "1": {
+            "bytes": 10030644,
+            "nodes": 6,
+            "meshes": 5,
+            "primitives": 5,
+            "materials": 1,
+            "textures": 3,
+            "images": [
+              [
+                "T_VEH_DeLorean_Vision_normal",
+                4096,
+                4096
+              ],
+              [
+                "T_VEH_DeLorean_Vision_orm",
+                4096,
+                4096
+              ],
+              [
+                "T_VEH_DeLorean_Vision_base",
+                4096,
+                4096
+              ]
+            ],
+            "tris": 20950,
+            "animations": 0,
+            "skins": 0,
+            "node_names": null
+          },
+          "2": {
+            "bytes": 9641524,
+            "nodes": 6,
+            "meshes": 5,
+            "primitives": 5,
+            "materials": 1,
+            "textures": 3,
+            "images": [
+              [
+                "T_VEH_DeLorean_Vision_normal",
+                4096,
+                4096
+              ],
+              [
+                "T_VEH_DeLorean_Vision_orm",
+                4096,
+                4096
+              ],
+              [
+                "T_VEH_DeLorean_Vision_base",
+                4096,
+                4096
+              ]
+            ],
+            "tris": 10419,
+            "animations": 0,
+            "skins": 0,
+            "node_names": null
+          }
+        },
+        "uv_overlap": {
+          "overlap": 0.0,
+          "outside": 0.0,
+          "coverage": 0.335
+        },
+        "texel": {
+          "min": 132.6,
+          "max": 136.8,
+          "spread": 1.03
+        },
+        "hygiene": {
+          "non_manifold": 0,
+          "boundary": 0,
+          "loose": 0,
+          "degenerate": 0,
+          "flipped": 0,
+          "inverted": 0,
+          "ngons": 0,
+          "quads": 20153,
+          "tris": 1594,
+          "faces": 21747,
+          "ngon_ratio": 0.0
+        },
+        "objects": 5,
+        "tris": 41900,
+        "dims": [
+          2.164,
+          4.52,
+          1.1617
+        ],
+        "files": {
+          "0": "output\\VEH_DeLorean_Vision\\glb\\VEH_DeLorean_Vision_LOD0.glb",
+          "1": "output\\VEH_DeLorean_Vision\\glb\\VEH_DeLorean_Vision_LOD1.glb",
+          "2": "output\\VEH_DeLorean_Vision\\glb\\VEH_DeLorean_Vision_LOD2.glb"
+        },
+        "engine": "godot"
+      },
+      "checks": [
+        {
+          "id": "G01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "LOD tris 41900 / 20950 / 10419 (targets x0.5 x0.25 +20%)"
+        },
+        {
+          "id": "G02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "6 colliders (godot naming), faces [6, 6, 6, 250, 250, 250] (max 255); missing []"
+        },
+        {
+          "id": "G03",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "textures {'base': (4096, 4096), 'orm': (4096, 4096), 'normal': (4096, 4096)} (want 4096), normal mean [0.501, 0.502, 0.953] (tangent ~0.5/0.5/1)"
+        },
+        {
+          "id": "G04",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "LOD0 glb 10.74 MB (max 12 MB)"
+        },
+        {
+          "id": "G05",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "glb: 11 meshes, 42686 tris (expect 42686), 1 materials, images [('T_VEH_DeLorean_Vision_normal', 4096, 4096), ('T_VEH_DeLorean_Vision_orm', 4096, 4096), ('T_VEH_DeLorean_Vision_base', 4096, 4096)]"
+        },
+        {
+          "id": "G06",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "15 game objects named *_LOD<n>"
+        },
+        {
+          "id": "U13",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "UVMap: overlap 0.00%, outside 0-1 0.00%, coverage 34%"
+        },
+        {
+          "id": "U14",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "texel density 132.6-136.8 px/m at 2k (spread 1.03, max 2.5)"
+        },
+        {
+          "id": "U04",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 non-manifold edges ; 0 open edges"
+        },
+        {
+          "id": "U05",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "flipped 0, inverted 0 "
+        },
+        {
+          "id": "U16",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 degenerate faces/edges "
+        },
+        {
+          "id": "U11",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 loose verts/edges "
+        },
+        {
+          "id": "U12",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "n-gons 0/21747 faces = 0.0% (max 5%)"
+        },
+        {
+          "id": "M01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "4 moving parts on their pivots, parented"
+        },
+        {
+          "id": "U15",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "LOD0 glb: exported 12 objs / reimported 12; materials 1/1"
+        }
+      ]
+    }
+  },
+  "blender": "5.2.1 LTS",
+  "summary": {
+    "result": "PASS",
+    "stages": {
+      "1": "PASS",
+      "2": "PASS",
+      "3": "PASS",
+      "4": "PASS"
+    },
+    "blockers_failed": 0
+  },
+  "metrics": {
+    "tris_s1": 2764,
+    "tris_low": 41900,
+    "tris_high": 81120,
+    "dims": [
+      2.164,
+      4.52,
+      1.1617
+    ],
+    "game": {
+      "0": 41900,
+      "1": 20950,
+      "2": 10419
+    }
+  },
+  "assumptions": [
+    "User explicitly requested original vision and abandoned image matching",
+    "Static closed-door exterior restomod",
+    "Godot glTF conventions retained"
+  ],
+  "uncertain": [
+    "UNCERTAIN_Undertray",
+    "UNCERTAIN_HiddenMechanicals"
+  ],
+  "known_limitations": [
+    "Original concept, not an accurate reconstruction of a production DMC-12",
+    "Simplified cockpit; no hidden drivetrain or opening doors",
+    "Doors remain closed; wheels have rotation pivots"
+  ]
+}

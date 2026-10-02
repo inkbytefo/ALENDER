@@ -9,24 +9,24 @@
         "blockers_failed": 0,
         "warnings": 1
       },
-      "inputs_hash": "554b891ecf66",
-      "time": "2026-09-29 23:21:04",
+      "inputs_hash": "ea47cb24b05b",
+      "time": "2026-10-02 22:57:12",
       "metrics": {
         "objects": 19,
-        "tris": 420,
+        "tris": 436,
         "dims": [
           0.042,
-          0.8817,
-          0.2553
+          0.8863,
+          0.2689
         ],
         "bbox_min": [
           -0.021,
-          -0.5388,
-          -0.2015
+          -0.5537,
+          -0.217
         ],
         "top_tris": [
           [
-            48,
+            52,
             "CTRL_Guard_PRIM"
           ],
           [
@@ -38,8 +38,12 @@
             "MAG_Body_PRIM"
           ],
           [
-            28,
-            "WOOD_Stock_PRIM"
+            32,
+            "GRIP_Pistol_PRIM"
+          ],
+          [
+            32,
+            "FSB_Body_PRIM"
           ],
           [
             28,
@@ -55,15 +59,11 @@
           ],
           [
             24,
-            "FSB_Body_PRIM"
+            "WOOD_Stock_PRIM"
           ],
           [
             20,
             "WOOD_HandguardLower_PRIM"
-          ],
-          [
-            20,
-            "GRIP_Pistol_PRIM"
           ]
         ],
         "materials": [
@@ -78,146 +78,146 @@
           "degenerate": 0,
           "flipped": 0,
           "inverted": 0,
-          "ngons": 26,
-          "quads": 136,
+          "ngons": 24,
+          "quads": 142,
           "tris": 0,
-          "faces": 162,
-          "ngon_ratio": 0.1605
+          "faces": 166,
+          "ngon_ratio": 0.1446
         },
         "R01": {
-          "iou": 0.9449,
-          "area_ratio": 1.0136,
-          "b_mean": 2.29,
+          "iou": 0.9206,
+          "area_ratio": 1.0584,
+          "b_mean": 3.42,
           "b_p95": 11.0,
-          "b_max": 36.06,
+          "b_max": 36.07,
           "zones": [
             {
               "box": [
-                728,
-                208,
-                904,
-                310
+                723,
+                210,
+                901,
+                312
               ],
-              "mean_px": 6.7,
-              "max_px": 32.0,
-              "signed_px": -4.7,
+              "mean_px": 9.3,
+              "max_px": 31.0,
+              "signed_px": -6.6,
               "hint": "model too small"
             },
             {
               "box": [
-                728,
-                310,
-                904,
-                412
+                13,
+                312,
+                190,
+                414
               ],
-              "mean_px": 5.0,
-              "max_px": 19.7,
-              "signed_px": 4.9,
+              "mean_px": 9.1,
+              "max_px": 11.0,
+              "signed_px": 9.1,
               "hint": "model too large"
             },
             {
               "box": [
-                551,
-                208,
-                728,
-                310
+                545,
+                210,
+                723,
+                312
               ],
-              "mean_px": 4.9,
-              "max_px": 32.0,
-              "signed_px": -4.5,
+              "mean_px": 5.1,
+              "max_px": 31.0,
+              "signed_px": -1.6,
               "hint": "model too small"
             },
             {
               "box": [
-                1081,
-                208,
-                1257,
-                310
+                723,
+                312,
+                901,
+                414
               ],
-              "mean_px": 2.6,
-              "max_px": 36.1,
-              "signed_px": 2.5,
+              "mean_px": 4.8,
+              "max_px": 12.6,
+              "signed_px": 4.8,
               "hint": "model too large"
             },
             {
               "box": [
-                1081,
-                310,
-                1257,
-                412
+                368,
+                414,
+                545,
+                516
               ],
-              "mean_px": 2.5,
-              "max_px": 9.0,
-              "signed_px": -1.9,
-              "hint": "model too small"
+              "mean_px": 4.5,
+              "max_px": 8.9,
+              "signed_px": 4.3,
+              "hint": "model too large"
             }
           ]
         },
         "R02": {
-          "iou": 0.9203,
-          "area_ratio": 1.0007,
-          "b_mean": 3.26,
-          "b_p95": 11.4,
-          "b_max": 36.36,
+          "iou": 0.9194,
+          "area_ratio": 1.0461,
+          "b_mean": 3.47,
+          "b_p95": 11.18,
+          "b_max": 35.61,
           "zones": [
             {
               "box": [
-                728,
-                208,
-                905,
-                310
+                13,
+                311,
+                190,
+                413
               ],
               "mean_px": 9.1,
-              "max_px": 32.0,
-              "signed_px": -5.3,
-              "hint": "model too small"
-            },
-            {
-              "box": [
-                22,
-                412,
-                198,
-                514
-              ],
-              "mean_px": 6.5,
-              "max_px": 32.4,
-              "signed_px": -5.7,
-              "hint": "model too small"
-            },
-            {
-              "box": [
-                551,
-                208,
-                728,
-                310
-              ],
-              "mean_px": 4.8,
-              "max_px": 32.0,
-              "signed_px": -4.5,
-              "hint": "model too small"
-            },
-            {
-              "box": [
-                1081,
-                208,
-                1258,
-                310
-              ],
-              "mean_px": 4.0,
-              "max_px": 36.4,
-              "signed_px": 3.2,
+              "max_px": 12.0,
+              "signed_px": 9.1,
               "hint": "model too large"
             },
             {
               "box": [
-                375,
-                412,
-                551,
-                514
+                724,
+                209,
+                901,
+                311
               ],
-              "mean_px": 3.6,
-              "max_px": 6.3,
-              "signed_px": 1.3,
+              "mean_px": 8.8,
+              "max_px": 31.0,
+              "signed_px": -5.6,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                13,
+                413,
+                190,
+                515
+              ],
+              "mean_px": 5.6,
+              "max_px": 29.4,
+              "signed_px": -2.4,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                546,
+                209,
+                724,
+                311
+              ],
+              "mean_px": 5.2,
+              "max_px": 31.0,
+              "signed_px": -1.7,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                368,
+                311,
+                546,
+                413
+              ],
+              "mean_px": 4.4,
+              "max_px": 8.1,
+              "signed_px": 4.1,
               "hint": "model too large"
             }
           ]
@@ -228,7 +228,7 @@
           "id": "U01",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "bbox 0.042 x 0.882 x 0.255 m vs target (None, 0.88, None) (+-3%)"
+          "detail": "bbox 0.042 x 0.886 x 0.269 m vs target (None, 0.88, None) (+-3%)"
         },
         {
           "id": "U02",
@@ -246,7 +246,7 @@
           "id": "U08",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "420 tris (S1 max 1500)"
+          "detail": "436 tris (S1 max 1500)"
         },
         {
           "id": "U10",
@@ -282,7 +282,7 @@
           "id": "U12",
           "severity": "WARN",
           "result": "FAIL",
-          "detail": "n-gons 26/162 faces = 16.1% (max 5%)"
+          "detail": "n-gons 24/166 faces = 14.5% (max 5%)"
         },
         {
           "id": "N01",
@@ -306,13 +306,13 @@
           "id": "R01",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "iou 0.945 (min 0.85), boundary p95 11.0 px (max 14.0), mean 2.3, max 36.1 | worst: model too small -5px @u728-904 v208-310; model too large +5px @u728-904 v310-412; model too small -4px @u551-728 v208-310"
+          "detail": "iou 0.921 (min 0.85), boundary p95 11.0 px (max 14.0), mean 3.4, max 36.1 | worst: model too small -7px @u723-901 v210-312; model too large +9px @u13-190 v312-414; model too small -2px @u545-723 v210-312"
         },
         {
           "id": "R02",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "iou 0.920 (min 0.85), boundary p95 11.4 px (max 14.0), mean 3.3, max 36.4 | worst: model too small -5px @u728-905 v208-310; model too small -6px @u22-198 v412-514; model too small -4px @u551-728 v208-310"
+          "detail": "iou 0.919 (min 0.85), boundary p95 11.2 px (max 14.0), mean 3.5, max 35.6 | worst: model too large +9px @u13-190 v311-413; model too small -6px @u724-901 v209-311; model too small -2px @u13-190 v413-515"
         }
       ]
     },
@@ -323,20 +323,20 @@
         "blockers_failed": 0,
         "warnings": 0
       },
-      "inputs_hash": "554b891ecf66",
-      "time": "2026-09-29 23:21:09",
+      "inputs_hash": "ea47cb24b05b",
+      "time": "2026-10-02 22:57:21",
       "metrics": {
-        "objects": 37,
-        "tris": 4646,
+        "objects": 38,
+        "tris": 5168,
         "dims": [
-          0.0691,
-          0.8802,
-          0.2563
+          0.0676,
+          0.8795,
+          0.2713
         ],
         "bbox_min": [
           -0.0472,
-          -0.5388,
-          -0.2024
+          -0.5536,
+          -0.2194
         ],
         "top_tris": [
           [
@@ -356,6 +356,10 @@
             "MAG_Body_LP"
           ],
           [
+            444,
+            "GRIP_Pistol_LP"
+          ],
+          [
             316,
             "WOOD_HandguardUpper_LP"
           ],
@@ -364,20 +368,16 @@
             "CTRL_Charging_Handle_LP"
           ],
           [
+            156,
+            "BARREL_Main_LP"
+          ],
+          [
             128,
             "MUZZLE_Brake_LP"
           ],
           [
             124,
             "WOOD_ButtPlate_LP"
-          ],
-          [
-            124,
-            "BARREL_Main_LP"
-          ],
-          [
-            108,
-            "FSB_Ear_R_LP"
           ]
         ],
         "materials": [
@@ -393,215 +393,215 @@
           "degenerate": 0,
           "flipped": 0,
           "inverted": 0,
-          "ngons": 59,
-          "quads": 2003,
+          "ngons": 66,
+          "quads": 2235,
           "tris": 0,
-          "faces": 2062,
-          "ngon_ratio": 0.0286
+          "faces": 2301,
+          "ngon_ratio": 0.0287
         },
         "R01": {
-          "iou": 0.9867,
-          "area_ratio": 1.0031,
-          "b_mean": 0.93,
-          "b_p95": 2.0,
-          "b_max": 43.0,
+          "iou": 0.9716,
+          "area_ratio": 1.0097,
+          "b_mean": 1.09,
+          "b_p95": 2.83,
+          "b_max": 22.0,
           "zones": [
             {
               "box": [
-                376,
-                208,
-                552,
-                310
-              ],
-              "mean_px": 6.5,
-              "max_px": 43.0,
-              "signed_px": -6.2,
-              "hint": "model too small"
-            },
-            {
-              "box": [
-                904,
-                515,
-                1080,
-                618
-              ],
-              "mean_px": 2.6,
-              "max_px": 5.7,
-              "signed_px": 2.0,
-              "hint": "model too large"
-            },
-            {
-              "box": [
-                376,
-                310,
-                552,
-                413
-              ],
-              "mean_px": 1.1,
-              "max_px": 12.0,
-              "signed_px": -0.4,
-              "hint": "mixed"
-            },
-            {
-              "box": [
-                552,
-                208,
-                728,
-                310
-              ],
-              "mean_px": 1.1,
-              "max_px": 29.0,
-              "signed_px": -0.9,
-              "hint": "model too small"
-            },
-            {
-              "box": [
-                1256,
-                208,
-                1433,
-                310
-              ],
-              "mean_px": 1.0,
-              "max_px": 18.0,
-              "signed_px": 0.3,
-              "hint": "mixed"
-            }
-          ]
-        },
-        "R02": {
-          "iou": 0.9462,
-          "area_ratio": 0.9903,
-          "b_mean": 2.43,
-          "b_p95": 6.71,
-          "b_max": 39.2,
-          "zones": [
-            {
-              "box": [
-                377,
-                208,
-                553,
-                310
-              ],
-              "mean_px": 5.9,
-              "max_px": 39.2,
-              "signed_px": -5.3,
-              "hint": "model too small"
-            },
-            {
-              "box": [
-                25,
-                413,
-                201,
-                515
-              ],
-              "mean_px": 5.7,
-              "max_px": 32.6,
-              "signed_px": -5.5,
-              "hint": "model too small"
-            },
-            {
-              "box": [
-                906,
-                208,
-                1082,
-                310
+                905,
+                518,
+                1081,
+                622
               ],
               "mean_px": 3.9,
-              "max_px": 9.0,
+              "max_px": 5.4,
               "signed_px": 3.9,
               "hint": "model too large"
             },
             {
               "box": [
-                730,
-                208,
-                906,
-                310
-              ],
-              "mean_px": 3.3,
-              "max_px": 16.8,
-              "signed_px": 0.2,
-              "hint": "mixed"
-            },
-            {
-              "box": [
-                730,
-                310,
-                906,
-                413
+                729,
+                518,
+                905,
+                622
               ],
               "mean_px": 2.7,
-              "max_px": 7.2,
-              "signed_px": -2.7,
-              "hint": "model too small"
-            }
-          ]
-        },
-        "D01": {
-          "iou": 0.9482,
-          "area_ratio": 0.9896,
-          "b_mean": 2.25,
-          "b_p95": 11.0,
-          "b_max": 43.01,
-          "zones": [
-            {
-              "box": [
-                375,
-                208,
-                551,
-                310
-              ],
-              "mean_px": 7.3,
-              "max_px": 43.0,
-              "signed_px": -7.2,
-              "hint": "model too small"
-            },
-            {
-              "box": [
-                728,
-                208,
-                904,
-                310
-              ],
-              "mean_px": 6.2,
-              "max_px": 32.0,
-              "signed_px": 4.8,
+              "max_px": 6.3,
+              "signed_px": 1.7,
               "hint": "model too large"
             },
             {
               "box": [
-                728,
-                310,
-                904,
-                413
+                376,
+                312,
+                552,
+                415
               ],
-              "mean_px": 4.6,
-              "max_px": 11.2,
-              "signed_px": -4.6,
+              "mean_px": 1.5,
+              "max_px": 9.1,
+              "signed_px": -0.8,
               "hint": "model too small"
             },
             {
               "box": [
-                551,
-                208,
-                728,
-                310
+                729,
+                209,
+                905,
+                312
               ],
-              "mean_px": 2.5,
-              "max_px": 29.4,
+              "mean_px": 1.4,
+              "max_px": 4.0,
+              "signed_px": 1.4,
+              "hint": "model too large"
+            },
+            {
+              "box": [
+                729,
+                312,
+                905,
+                415
+              ],
+              "mean_px": 1.4,
+              "max_px": 4.0,
+              "signed_px": 0.0,
+              "hint": "mixed"
+            }
+          ]
+        },
+        "R02": {
+          "iou": 0.9649,
+          "area_ratio": 0.998,
+          "b_mean": 1.45,
+          "b_p95": 3.61,
+          "b_max": 31.58,
+          "zones": [
+            {
+              "box": [
+                25,
+                415,
+                201,
+                518
+              ],
+              "mean_px": 5.7,
+              "max_px": 31.6,
+              "signed_px": -5.2,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                730,
+                209,
+                906,
+                312
+              ],
+              "mean_px": 2.3,
+              "max_px": 15.0,
               "signed_px": 2.2,
               "hint": "model too large"
             },
             {
               "box": [
-                1081,
-                208,
-                1257,
-                310
+                730,
+                518,
+                906,
+                622
               ],
-              "mean_px": 2.4,
-              "max_px": 34.7,
-              "signed_px": -2.2,
+              "mean_px": 2.2,
+              "max_px": 8.1,
+              "signed_px": 0.6,
+              "hint": "model too large"
+            },
+            {
+              "box": [
+                730,
+                415,
+                906,
+                518
+              ],
+              "mean_px": 1.8,
+              "max_px": 2.2,
+              "signed_px": -1.8,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                730,
+                312,
+                906,
+                415
+              ],
+              "mean_px": 1.6,
+              "max_px": 4.1,
+              "signed_px": -0.9,
+              "hint": "model too small"
+            }
+          ]
+        },
+        "D01": {
+          "iou": 0.9215,
+          "area_ratio": 0.954,
+          "b_mean": 3.41,
+          "b_p95": 12.21,
+          "b_max": 34.66,
+          "zones": [
+            {
+              "box": [
+                13,
+                312,
+                190,
+                415
+              ],
+              "mean_px": 9.3,
+              "max_px": 13.0,
+              "signed_px": -9.3,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                723,
+                209,
+                901,
+                312
+              ],
+              "mean_px": 9.0,
+              "max_px": 32.0,
+              "signed_px": 7.8,
+              "hint": "model too large"
+            },
+            {
+              "box": [
+                368,
+                415,
+                545,
+                518
+              ],
+              "mean_px": 5.2,
+              "max_px": 9.8,
+              "signed_px": -5.1,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                368,
+                312,
+                545,
+                415
+              ],
+              "mean_px": 4.9,
+              "max_px": 11.2,
+              "signed_px": -4.9,
+              "hint": "model too small"
+            },
+            {
+              "box": [
+                723,
+                312,
+                901,
+                415
+              ],
+              "mean_px": 4.7,
+              "max_px": 11.0,
+              "signed_px": -4.7,
               "hint": "model too small"
             }
           ]
@@ -609,17 +609,17 @@
         "uv_overlap": {
           "overlap": 0.0,
           "outside": 0.0,
-          "coverage": 0.628
+          "coverage": 0.612
         },
         "texel": {
-          "min": 2798.5,
-          "max": 2985.3,
+          "min": 2748.5,
+          "max": 2932.2,
           "spread": 1.07
         },
         "uv": {
-          "area3d_m2": 0.3057,
-          "atlas_coverage": 0.627,
-          "texel_px_per_m_at_2k": 2934.1
+          "area3d_m2": 0.3104,
+          "atlas_coverage": 0.612,
+          "texel_px_per_m_at_2k": 2876.4
         }
       },
       "checks": [
@@ -627,7 +627,7 @@
           "id": "U01",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "bbox 0.069 x 0.880 x 0.256 m vs target (None, 0.88, None) (+-2%)"
+          "detail": "bbox 0.068 x 0.879 x 0.271 m vs target (None, 0.88, None) (+-2%)"
         },
         {
           "id": "U02",
@@ -651,13 +651,13 @@
           "id": "U08",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "4646 tris (S2 max 20000)"
+          "detail": "5168 tris (S2 max 20000)"
         },
         {
           "id": "U09",
           "severity": "WARN",
           "result": "PASS",
-          "detail": "4646 tris (LOD0 target 4000-15000)"
+          "detail": "5168 tris (LOD0 target 4000-15000)"
         },
         {
           "id": "U10",
@@ -693,7 +693,7 @@
           "id": "U12",
           "severity": "WARN",
           "result": "PASS",
-          "detail": "n-gons 59/2062 faces = 2.9% (max 5%)"
+          "detail": "n-gons 66/2301 faces = 2.9% (max 5%)"
         },
         {
           "id": "N01",
@@ -717,37 +717,37 @@
           "id": "R01",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "iou 0.987 (min 0.92), boundary p95 2.0 px (max 6.0), mean 0.9, max 43.0 | worst: model too small -6px @u376-552 v208-310; model too large +2px @u904-1080 v515-618; mixed -0px @u376-552 v310-413"
+          "detail": "iou 0.972 (min 0.92), boundary p95 2.8 px (max 6.0), mean 1.1, max 22.0 | worst: model too large +4px @u905-1081 v518-622; model too large +2px @u729-905 v518-622; model too small -1px @u376-552 v312-415"
         },
         {
           "id": "R02",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "iou 0.946 (min 0.92), boundary p95 6.7 px (max 8.0), mean 2.4, max 39.2 | worst: model too small -5px @u377-553 v208-310; model too small -6px @u25-201 v413-515; model too large +4px @u906-1082 v208-310"
+          "detail": "iou 0.965 (min 0.92), boundary p95 3.6 px (max 8.0), mean 1.4, max 31.6 | worst: model too small -5px @u25-201 v415-518; model too large +2px @u730-906 v209-312; model too large +1px @u730-906 v518-622"
         },
         {
           "id": "D01",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "iou 0.948 (min 0.80), boundary p95 11.0 px (max 16.0), mean 2.2, max 43.0 | worst: model too small -7px @u375-551 v208-310; model too large +5px @u728-904 v208-310; model too small -5px @u728-904 v310-413"
+          "detail": "iou 0.921 (min 0.80), boundary p95 12.2 px (max 16.0), mean 3.4, max 34.7 | worst: model too small -9px @u13-190 v312-415; model too large +8px @u723-901 v209-312; model too small -5px @u368-545 v415-518"
         },
         {
           "id": "D02",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "bbox change vs S1 on axes YZ: 0.4% (max 4.0%)"
+          "detail": "bbox change vs S1 on axes YZ: 0.9% (max 4.0%)"
         },
         {
           "id": "U13",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "UV_Bake: overlap 0.00%, outside 0-1 0.00%, coverage 63%"
+          "detail": "UV_Bake: overlap 0.00%, outside 0-1 0.00%, coverage 61%"
         },
         {
           "id": "U14",
           "severity": "WARN",
           "result": "PASS",
-          "detail": "texel density 2798.5-2985.3 px/m at 2k (spread 1.07, max 2.5)"
+          "detail": "texel density 2748.5-2932.2 px/m at 2k (spread 1.07, max 2.5)"
         }
       ]
     },
@@ -756,22 +756,22 @@
       "summary": {
         "result": "PASS",
         "blockers_failed": 0,
-        "warnings": 1
+        "warnings": 0
       },
-      "inputs_hash": "554b891ecf66",
-      "time": "2026-09-29 23:21:15",
+      "inputs_hash": "ea47cb24b05b",
+      "time": "2026-10-02 22:57:31",
       "metrics": {
-        "objects": 49,
-        "tris": 18492,
+        "objects": 50,
+        "tris": 19294,
         "dims": [
-          0.0694,
-          0.8802,
-          0.2562
+          0.0679,
+          0.8801,
+          0.2714
         ],
         "bbox_min": [
           -0.0472,
-          -0.5388,
-          -0.2024
+          -0.5536,
+          -0.2196
         ],
         "top_tris": [
           [
@@ -795,12 +795,12 @@
             "MAG_Body_HP"
           ],
           [
-            724,
-            "WOOD_HandguardUpper_HP"
+            948,
+            "GRIP_Pistol_HP"
           ],
           [
-            652,
-            "GRIP_Pistol_HP"
+            724,
+            "WOOD_HandguardUpper_HP"
           ],
           [
             580,
@@ -811,8 +811,8 @@
             "FASTENER_Rivets_L_HP"
           ],
           [
-            444,
-            "WOOD_ButtPlate_HP"
+            448,
+            "FSB_Ear_R_HP"
           ]
         ],
         "materials": [
@@ -825,202 +825,190 @@
           "non_manifold": 0,
           "boundary": 0,
           "loose": 0,
-          "degenerate": 3,
+          "degenerate": 0,
           "flipped": 0,
           "inverted": 0,
-          "ngons": 116,
-          "quads": 8406,
+          "ngons": 123,
+          "quads": 8766,
           "tris": 242,
-          "faces": 8764,
-          "ngon_ratio": 0.0132
+          "faces": 9131,
+          "ngon_ratio": 0.0135
         },
         "R01": {
-          "iou": 0.9843,
-          "area_ratio": 1.01,
-          "b_mean": 1.14,
-          "b_p95": 3.0,
-          "b_max": 43.0,
+          "iou": 0.9687,
+          "area_ratio": 1.013,
+          "b_mean": 1.34,
+          "b_p95": 4.0,
+          "b_max": 32.56,
           "zones": [
+            {
+              "box": [
+                24,
+                415,
+                200,
+                518
+              ],
+              "mean_px": 6.1,
+              "max_px": 32.6,
+              "signed_px": 5.1,
+              "hint": "model too large"
+            },
+            {
+              "box": [
+                905,
+                518,
+                1081,
+                622
+              ],
+              "mean_px": 3.9,
+              "max_px": 5.4,
+              "signed_px": 3.9,
+              "hint": "model too large"
+            },
+            {
+              "box": [
+                729,
+                518,
+                905,
+                622
+              ],
+              "mean_px": 2.6,
+              "max_px": 6.3,
+              "signed_px": 1.8,
+              "hint": "model too large"
+            },
+            {
+              "box": [
+                376,
+                312,
+                552,
+                415
+              ],
+              "mean_px": 1.5,
+              "max_px": 8.1,
+              "signed_px": -0.8,
+              "hint": "model too small"
+            },
             {
               "box": [
                 376,
                 209,
                 552,
-                311
+                312
               ],
-              "mean_px": 6.7,
-              "max_px": 43.0,
-              "signed_px": -6.2,
-              "hint": "model too small"
+              "mean_px": 1.4,
+              "max_px": 6.4,
+              "signed_px": 1.2,
+              "hint": "model too large"
+            }
+          ]
+        },
+        "R02": {
+          "iou": 0.9663,
+          "area_ratio": 1.0012,
+          "b_mean": 1.3,
+          "b_p95": 3.16,
+          "b_max": 20.02,
+          "zones": [
+            {
+              "box": [
+                730,
+                209,
+                906,
+                312
+              ],
+              "mean_px": 2.3,
+              "max_px": 15.0,
+              "signed_px": 2.2,
+              "hint": "model too large"
             },
             {
               "box": [
-                24,
-                414,
-                200,
-                516
+                730,
+                518,
+                906,
+                622
               ],
-              "mean_px": 5.4,
-              "max_px": 32.6,
+              "mean_px": 2.1,
+              "max_px": 8.1,
+              "signed_px": 0.7,
+              "hint": "model too large"
+            },
+            {
+              "box": [
+                377,
+                209,
+                553,
+                312
+              ],
+              "mean_px": 1.9,
+              "max_px": 8.6,
+              "signed_px": 1.7,
+              "hint": "model too large"
+            },
+            {
+              "box": [
+                25,
+                415,
+                201,
+                518
+              ],
+              "mean_px": 1.6,
+              "max_px": 8.1,
+              "signed_px": -0.3,
+              "hint": "mixed"
+            },
+            {
+              "box": [
+                377,
+                415,
+                553,
+                518
+              ],
+              "mean_px": 1.6,
+              "max_px": 5.0,
+              "signed_px": -1.3,
+              "hint": "model too small"
+            }
+          ]
+        },
+        "D01": {
+          "iou": 0.9931,
+          "area_ratio": 1.0032,
+          "b_mean": 0.38,
+          "b_p95": 1.0,
+          "b_max": 32.02,
+          "zones": [
+            {
+              "box": [
+                28,
+                415,
+                203,
+                518
+              ],
+              "mean_px": 5.3,
+              "max_px": 32.0,
               "signed_px": 5.2,
               "hint": "model too large"
             },
             {
               "box": [
-                904,
-                516,
-                1080,
-                619
-              ],
-              "mean_px": 2.8,
-              "max_px": 6.4,
-              "signed_px": 2.3,
-              "hint": "model too large"
-            },
-            {
-              "box": [
-                376,
-                311,
-                552,
-                414
-              ],
-              "mean_px": 1.0,
-              "max_px": 12.0,
-              "signed_px": -0.4,
-              "hint": "mixed"
-            },
-            {
-              "box": [
-                1256,
+                379,
                 209,
-                1433,
-                311
+                555,
+                312
               ],
-              "mean_px": 1.0,
-              "max_px": 18.0,
-              "signed_px": 0.3,
-              "hint": "mixed"
-            }
-          ]
-        },
-        "R02": {
-          "iou": 0.9486,
-          "area_ratio": 0.9971,
-          "b_mean": 2.19,
-          "b_p95": 6.0,
-          "b_max": 40.8,
-          "zones": [
-            {
-              "box": [
-                377,
-                209,
-                553,
-                311
-              ],
-              "mean_px": 6.1,
-              "max_px": 40.8,
-              "signed_px": -5.3,
-              "hint": "model too small"
-            },
-            {
-              "box": [
-                906,
-                209,
-                1082,
-                311
-              ],
-              "mean_px": 4.0,
-              "max_px": 8.1,
-              "signed_px": 4.0,
-              "hint": "model too large"
-            },
-            {
-              "box": [
-                730,
-                209,
-                906,
-                311
-              ],
-              "mean_px": 3.3,
-              "max_px": 16.5,
-              "signed_px": 0.2,
-              "hint": "mixed"
-            },
-            {
-              "box": [
-                730,
-                311,
-                906,
-                414
-              ],
-              "mean_px": 2.5,
-              "max_px": 6.7,
-              "signed_px": -2.5,
-              "hint": "model too small"
-            },
-            {
-              "box": [
-                377,
-                414,
-                553,
-                516
-              ],
-              "mean_px": 2.4,
-              "max_px": 6.3,
-              "signed_px": 0.0,
-              "hint": "mixed"
-            }
-          ]
-        },
-        "D01": {
-          "iou": 0.9915,
-          "area_ratio": 1.0069,
-          "b_mean": 0.43,
-          "b_p95": 1.0,
-          "b_max": 32.98,
-          "zones": [
-            {
-              "box": [
-                25,
-                413,
-                201,
-                516
-              ],
-              "mean_px": 5.6,
-              "max_px": 33.0,
-              "signed_px": 5.6,
-              "hint": "model too large"
-            },
-            {
-              "box": [
-                201,
-                208,
-                377,
-                310
-              ],
-              "mean_px": 0.8,
+              "mean_px": 0.5,
               "max_px": 2.8,
-              "signed_px": 0.6,
-              "hint": "model too large"
+              "signed_px": 0.4,
+              "hint": "mixed"
             },
             {
               "box": [
-                25,
-                208,
-                201,
-                310
-              ],
-              "mean_px": 0.6,
-              "max_px": 5.0,
-              "signed_px": 0.6,
-              "hint": "model too large"
-            },
-            {
-              "box": [
-                201,
-                310,
-                377,
-                413
+                28,
+                209,
+                203,
+                312
               ],
               "mean_px": 0.4,
               "max_px": 1.0,
@@ -1029,14 +1017,26 @@
             },
             {
               "box": [
-                553,
-                413,
-                729,
-                516
+                203,
+                209,
+                379,
+                312
               ],
               "mean_px": 0.4,
               "max_px": 1.0,
-              "signed_px": 0.4,
+              "signed_px": 0.1,
+              "hint": "mixed"
+            },
+            {
+              "box": [
+                731,
+                415,
+                906,
+                518
+              ],
+              "mean_px": 0.3,
+              "max_px": 1.0,
+              "signed_px": 0.3,
               "hint": "mixed"
             }
           ]
@@ -1047,7 +1047,7 @@
           "id": "U01",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "bbox 0.069 x 0.880 x 0.256 m vs target (None, 0.88, None) (+-2%)"
+          "detail": "bbox 0.068 x 0.880 x 0.271 m vs target (None, 0.88, None) (+-2%)"
         },
         {
           "id": "U02",
@@ -1071,7 +1071,7 @@
           "id": "U08",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "18492 tris (S3 max 60000)"
+          "detail": "19294 tris (S3 max 60000)"
         },
         {
           "id": "U10",
@@ -1094,8 +1094,8 @@
         {
           "id": "U16",
           "severity": "WARN",
-          "result": "FAIL",
-          "detail": "3 degenerate faces/edges [(3, 'GRIP_Pistol_HP')]"
+          "result": "PASS",
+          "detail": "0 degenerate faces/edges "
         },
         {
           "id": "U11",
@@ -1107,7 +1107,7 @@
           "id": "U12",
           "severity": "WARN",
           "result": "PASS",
-          "detail": "n-gons 116/8764 faces = 1.3% (max 5%)"
+          "detail": "n-gons 123/9131 faces = 1.4% (max 5%)"
         },
         {
           "id": "N01",
@@ -1131,31 +1131,31 @@
           "id": "R01",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "iou 0.984 (min 0.92), boundary p95 3.0 px (max 6.0), mean 1.1, max 43.0 | worst: model too small -6px @u376-552 v209-311; model too large +5px @u24-200 v414-516; model too large +2px @u904-1080 v516-619"
+          "detail": "iou 0.969 (min 0.92), boundary p95 4.0 px (max 6.0), mean 1.3, max 32.6 | worst: model too large +5px @u24-200 v415-518; model too large +4px @u905-1081 v518-622; model too large +2px @u729-905 v518-622"
         },
         {
           "id": "R02",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "iou 0.949 (min 0.93), boundary p95 6.0 px (max 6.0), mean 2.2, max 40.8 | worst: model too small -5px @u377-553 v209-311; model too large +4px @u906-1082 v209-311; mixed +0px @u730-906 v209-311"
+          "detail": "iou 0.966 (min 0.93), boundary p95 3.2 px (max 6.0), mean 1.3, max 20.0 | worst: model too large +2px @u730-906 v209-312; model too large +1px @u730-906 v518-622; model too large +2px @u377-553 v209-312"
         },
         {
           "id": "D01",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "iou 0.992 (min 0.95), boundary p95 1.0 px (max 4.0), mean 0.4, max 33.0 | worst: model too large +6px @u25-201 v413-516; model too large +1px @u201-377 v208-310; model too large +1px @u25-201 v208-310"
+          "detail": "iou 0.993 (min 0.95), boundary p95 1.0 px (max 4.0), mean 0.4, max 32.0 | worst: model too large +5px @u28-203 v415-518; mixed +0px @u379-555 v209-312; mixed +0px @u28-203 v209-312"
         },
         {
           "id": "D02",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "bbox change vs S2 on axes YZ: 0.0% (max 1.5%)"
+          "detail": "bbox change vs S2 on axes YZ: 0.1% (max 1.5%)"
         },
         {
           "id": "U15",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "hero glb: exported 50 objs / reimported 50; materials 4/4"
+          "detail": "hero glb: exported 51 objs / reimported 51; materials 4/4"
         }
       ]
     },
@@ -1166,37 +1166,37 @@
         "blockers_failed": 0,
         "warnings": 0
       },
-      "inputs_hash": "554b891ecf66",
-      "time": "2026-09-29 23:17:48",
+      "inputs_hash": "ea47cb24b05b",
+      "time": "2026-10-02 23:03:45",
       "metrics": {
         "bake": {
           "size": 2048,
           "device": "OPTIX",
           "seconds_per_map": {
-            "base": 73.1,
-            "normal": 51.6,
-            "ao": 69.8,
-            "rough": 62.9,
-            "metal": 62.1
+            "base": 77.4,
+            "normal": 92.4,
+            "ao": 68.0,
+            "rough": 59.9,
+            "metal": 58.1
           },
-          "extrusion_m": 0.002,
-          "ao_distance_m": 0.0272,
+          "extrusion_m": 0.0021,
+          "ao_distance_m": 0.0282,
           "base_mean": [
-            0.168,
-            0.11,
-            0.079
+            0.316,
+            0.257,
+            0.236
           ],
           "normal_mean": [
-            0.5,
-            0.501,
-            0.897
+            0.502,
+            0.502,
+            0.929
           ],
-          "seconds": 320.8
+          "seconds": 357.3
         },
         "lod_tris": {
-          "0": 4646,
-          "1": 2322,
-          "2": 1134
+          "0": 5168,
+          "1": 2584,
+          "2": 1266
         },
         "textures": {
           "base": "output\\PROP_AK_Rifle\\textures\\T_PROP_AK_Rifle_base.png",
@@ -1205,7 +1205,7 @@
         },
         "glb": {
           "0": {
-            "bytes": 3753832,
+            "bytes": 3909380,
             "nodes": 19,
             "meshes": 18,
             "primitives": 18,
@@ -1228,13 +1228,13 @@
                 2048
               ]
             ],
-            "tris": 5510,
+            "tris": 6184,
             "animations": 0,
             "skins": 0,
             "node_names": null
           },
           "1": {
-            "bytes": 3628596,
+            "bytes": 3766544,
             "nodes": 13,
             "meshes": 12,
             "primitives": 12,
@@ -1257,13 +1257,13 @@
                 2048
               ]
             ],
-            "tris": 2322,
+            "tris": 2584,
             "animations": 0,
             "skins": 0,
             "node_names": null
           },
           "2": {
-            "bytes": 3585668,
+            "bytes": 3719960,
             "nodes": 10,
             "meshes": 9,
             "primitives": 9,
@@ -1286,7 +1286,7 @@
                 2048
               ]
             ],
-            "tris": 1134,
+            "tris": 1266,
             "animations": 0,
             "skins": 0,
             "node_names": null
@@ -1295,11 +1295,11 @@
         "uv_overlap": {
           "overlap": 0.0,
           "outside": 0.0,
-          "coverage": 0.628
+          "coverage": 0.612
         },
         "texel": {
-          "min": 2798.5,
-          "max": 2985.3,
+          "min": 2748.5,
+          "max": 2932.2,
           "spread": 1.07
         },
         "hygiene": {
@@ -1309,18 +1309,18 @@
           "degenerate": 0,
           "flipped": 0,
           "inverted": 0,
-          "ngons": 59,
-          "quads": 2003,
+          "ngons": 66,
+          "quads": 2235,
           "tris": 0,
-          "faces": 2062,
-          "ngon_ratio": 0.0286
+          "faces": 2301,
+          "ngon_ratio": 0.0287
         },
         "objects": 12,
-        "tris": 4646,
+        "tris": 5168,
         "dims": [
-          0.0691,
-          0.8802,
-          0.2563
+          0.0676,
+          0.8795,
+          0.2713
         ],
         "files": {
           "0": "output\\PROP_AK_Rifle\\glb\\PROP_AK_Rifle_LOD0.glb",
@@ -1334,31 +1334,31 @@
           "id": "G01",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "LOD tris 4646 / 2322 / 1134 (targets x0.5 x0.25 +20%)"
+          "detail": "LOD tris 5168 / 2584 / 1266 (targets x0.5 x0.25 +20%)"
         },
         {
           "id": "G02",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "6 colliders (godot naming), faces [24, 100, 116, 124, 250, 250] (max 255); missing []"
+          "detail": "6 colliders (godot naming), faces [120, 124, 124, 148, 250, 250] (max 255); missing []"
         },
         {
           "id": "G03",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "textures {'base': (2048, 2048), 'orm': (2048, 2048), 'normal': (2048, 2048)} (want 2048), normal mean [0.5, 0.501, 0.897] (tangent ~0.5/0.5/1)"
+          "detail": "textures {'base': (2048, 2048), 'orm': (2048, 2048), 'normal': (2048, 2048)} (want 2048), normal mean [0.502, 0.502, 0.929] (tangent ~0.5/0.5/1)"
         },
         {
           "id": "G04",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "LOD0 glb 3.75 MB (max 6 MB)"
+          "detail": "LOD0 glb 3.91 MB (max 6 MB)"
         },
         {
           "id": "G05",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "glb: 18 meshes, 5510 tris (expect 5510), 1 materials, images [('T_PROP_AK_Rifle_normal', 2048, 2048), ('T_PROP_AK_Rifle_orm', 2048, 2048), ('T_PROP_AK_Rifle_base', 2048, 2048)]"
+          "detail": "glb: 18 meshes, 6184 tris (expect 6184), 1 materials, images [('T_PROP_AK_Rifle_normal', 2048, 2048), ('T_PROP_AK_Rifle_orm', 2048, 2048), ('T_PROP_AK_Rifle_base', 2048, 2048)]"
         },
         {
           "id": "G06",
@@ -1370,13 +1370,13 @@
           "id": "U13",
           "severity": "BLOCKER",
           "result": "PASS",
-          "detail": "UVMap: overlap 0.00%, outside 0-1 0.00%, coverage 63%"
+          "detail": "UVMap: overlap 0.00%, outside 0-1 0.00%, coverage 61%"
         },
         {
           "id": "U14",
           "severity": "WARN",
           "result": "PASS",
-          "detail": "texel density 2798.5-2985.3 px/m at 2k (spread 1.07, max 2.5)"
+          "detail": "texel density 2748.5-2932.2 px/m at 2k (spread 1.07, max 2.5)"
         },
         {
           "id": "U04",
@@ -1406,7 +1406,7 @@
           "id": "U12",
           "severity": "WARN",
           "result": "PASS",
-          "detail": "n-gons 59/2062 faces = 2.9% (max 5%)"
+          "detail": "n-gons 66/2301 faces = 2.9% (max 5%)"
         },
         {
           "id": "M01",
@@ -1435,18 +1435,18 @@
     "blockers_failed": 0
   },
   "metrics": {
-    "tris_s1": 420,
-    "tris_low": 4646,
-    "tris_high": 18492,
+    "tris_s1": 436,
+    "tris_low": 5168,
+    "tris_high": 19294,
     "dims": [
-      0.0694,
-      0.8802,
-      0.2562
+      0.0676,
+      0.8795,
+      0.2713
     ],
     "game": {
-      "0": 4646,
-      "1": 2322,
-      "2": 1134
+      "0": 5168,
+      "1": 2584,
+      "2": 1266
     }
   },
   "uncertain": [

@@ -3,15 +3,18 @@ import os
 import bpy
 
 
-def glb(objs, path, animations=False, skins=False):
-    """Export exactly `objs` (include the root empty) to .glb, +Y up, modifiers applied."""
+def glb(objs, path, animations=False, skins=False, image_format="AUTO", image_quality=90):
+    """Export exactly `objs` (include the root empty) to .glb, +Y up, modifiers applied.
+    image_format: "AUTO" keeps the source format (PNG bakes stay PNG); "JPEG" / "WEBP" re-encode the
+    embedded textures at image_quality (textured 2K atlases are ~6 MB each as PNG)."""
     bpy.ops.object.select_all(action="DESELECT")
     for o in objs:
         o.select_set(True)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     bpy.ops.export_scene.gltf(filepath=path, export_format="GLB", export_yup=True, export_apply=True,
                               use_selection=True, export_cameras=False, export_lights=False,
-                              export_animations=animations, export_skins=skins)
+                              export_animations=animations, export_skins=skins,
+                              export_image_format=image_format, export_image_quality=image_quality)
     print("[GLB]", path)
     return path
 

@@ -180,3 +180,78 @@ object - evaluated vertex count, triangle count, world bbox (4 decimals), materi
 the two JSON files; 0 differences = identical model. Run it on every derived file too (the cleaned
 WORKSPACE blend), since regrouping collections and purging orphans can silently drop objects.
 
+### AI-generated texture inputs: measure before trusting  [STATUS: CODE in projects/VEH_TT92_Racing_Car/texgen.py - candidate for workbench]
+AI image tools return "seamless" albedos that are not (edge difference 2-4x the neighbour difference on
+structured textures) and "normal maps" that can be a hue-shifted copy of the albedo. Check both with numbers:
+seam ratio = mean |edge - opposite edge| / mean |pixel - neighbour| (1.0 = tiles), and for a normal map the
+mean colour must be ~(0.5, 0.5, 1.0) AND the picture must not resemble the albedo. Fix seams with an edge
+cross-fade that renormalises the detail (plain blending leaves a flat band). Roughness / height / AO derived
+from albedo luminance are approximations - say so, and keep normal strength low on smooth paint (0.1-0.2):
+at 0.6 a derived normal turned car paint into hammered metal.
+Pointiness-based edge wear needs a high threshold (0.62+): thin convex parts are "all edge" and go fully bare.
+
+### Baking a node-group master material for an engine  [STATUS: CODE in projects/VEH_TT92_Racing_Car/stage7_game.py - candidate for workbench.bl.game]
+When every material instance shares ONE master node group, bake material inputs by rewiring the group once:
+group output <- Emission(<socket feeding Base Color / Roughness / Metallic / Emission>) and bake type EMIT.
+One relink serves all instances, metals do not bake black (a DIFFUSE colour pass of a metallic BSDF is black),
+and the result is lighting-free. Restore the BSDF link for the NORMAL and AO passes. Triangulate the game mesh
+BEFORE baking so the engine's tangents match. Helical / very long thin parts (heat-wrap strands) unwrap into
+metre-long UV strips that wreck the atlas scale: drop or simplify them in the game mesh. A clear coat does not
+export - fold part of it into the baked roughness and say so.
+
+
+46. **A downscaled AI sheet and its floor shadow corrupted the DeLorean intake.** Old axle
+    landmarks implied a 5.147m car from a 4.213m label; the mask included the entire shadow.
+    Preserve the native attachment, verify axle centers on labelled crops, and inspect the mask.
+    The user chose drawn side proportions over conflicting labels; R02 therefore proves sheet
+    fidelity, not photographic or stock-dimension accuracy. **[JUDGEMENT; reproducible boundary
+    analysis in projects/VEH_DeLorean_DMC12/prepare_reference.py]**
+
+47. **A passing side silhouette concealed poor three-dimensional design.** The first DeLorean
+    had detached-looking overlays, crude slab bumpers and inconsistent surface flow despite
+    96.8% silhouette overlap. After the user changed the brief to an original restomod, a
+    continuous curved shell and integrated cabin replaced the silhouette-first construction.
+    Inspect clay and specular front/rear/side views before accepting any hero asset; a gate
+    measures its specified property, not overall artistic quality. **[JUDGEMENT]**
+
+- **[CODE] A "side photo" can hide 10-16 % perspective** (AK: rifle leaning away from the camera; butt
+  16 % longer than the muzzle end, yet every gate passed because gates compare against the same photo).
+  Symptoms: scale cross-checks disagree by 5-10 %, parallel real edges converge. Fix: fit
+  `refmap.ObliqueRefMap` (yaw + focal) to >= 4 stations of an orthographic source and keep landmarks in px.
+- **[JUDGEMENT] Stations only give the in-plane homography; the camera position comes from parallax.**
+  Parts that are NOT thickened in the photo are seen square-on, visible end faces give the obliquity
+  elsewhere. Then subtract `REF.thickness_px(u, hw)` from silhouette edges that face along the long axis,
+  or thick parts are counted twice (R02 "model too large" on one side of every thick part).
+- **[JUDGEMENT] Scanned PDFs without a PDF library:** pages are usually embedded JPEGs; a 15-line
+  pure-python `/DCTDecode` stream extractor is enough (see ref/pdf_pages of PROP_AK_Rifle).
+
+
+48. **Watertight boolean wheel cuts are not an editable automotive surface cage.** The
+    DeLorean Vision refinement uses explicit circular-arch lower boundaries and ruled quad
+    strips, merges redundant nearby stations, and keeps localized boolean recesses on the
+    almost planar fascias. Longitudinal natural cubic splines and periodic B-spline cross
+    sections improve reflection flow, but polygon geometry is not a CAD Class-A certificate.
+    Inspect both wire edges and studio reflections; report aspect-ratio observations rather
+    than claiming an all-quad cage. **[CODE: projects/VEH_DeLorean_Vision/parts.py and
+    review_topology.py; JUDGEMENT]**
+
+49. **A single atlas can pass gates while adjacent trim contaminates glazing.** A 29.5mm
+    selected-to-active cage projected fine rail geometry into the windshield. This project
+    tightens the cage to 6mm, uses 4K maps and repacks concave UV islands. The hero retains
+    thin-wall transmissive glass; the portable one-material game atlas approximates it with
+    opaque tinted glazing. Review S4 close-ups separately; changing the material count would
+    violate the current one-material export contract. Merge rigid wheel children before
+    baking/export to retain four pivots with five visible game meshes. **[CODE:
+    projects/VEH_DeLorean_Vision/production.py; candidate project hooks for a future library API]**
+
+- **[CODE: master] Edge wear from Geometry > Pointiness is per vertex**; on bevelled plates every corner
+  is convex, so flat faces flood or show nothing. `Bevel Wear` uses the Cycles Bevel node
+  (1 - N.N_bevel, convex only) and is tessellation independent. Chip / scratch / grunge masks are
+  optional master inputs (`masks=` in the instance spec).
+- **[CODE: master] Grain textures need `projection="CYL_Y"`**: BOX projection turns the grain 90 deg on
+  the top / bottom faces of a stock. U along the part, V = atan2 around it, seam on the belly.
+- **[JUDGEMENT] A dark finish with Metallic 1 renders as a black hole** in a studio (nothing to
+  reflect). Phosphate / parkerized steel is mostly diffuse: Metallic Scale ~0.4 + bare-metal wear.
+- **[CODE: pipeline/export] Painted atlases triple the glb** (3 x 6 MB PNG at 2K): keep PNG masters,
+  embed JPEG (`GAME image_format="JPEG"`). `materials.ensure` must skip master instances when a later
+  stage re-opens the file.

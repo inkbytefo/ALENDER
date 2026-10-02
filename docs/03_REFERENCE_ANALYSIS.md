@@ -63,6 +63,16 @@ overall length 820 px = 2.05 m, height 418 px = 1.045 m — both matched the che
 - Wide-angle/close photos: measure only near the object's centre plane, prefer the cheatsheet
   orthographic views for proportions, and flag it in `project.md`.
 
+### Perspective check (oblique "side" photos)
+If scale cross-checks disagree by more than ~4 %, or edges that are parallel on the real object
+converge in the photo, the object plane was not parallel to the sensor. Take >= 4 stations along the
+long axis from an orthographic source (factory drawing, known lengths), fit yaw + focal length and use
+`refmap.ObliqueRefMap(image_size, f_px, yaw, dist, roll, anchor_px, anchor_yz, principal=...)` instead
+of `RefMap`: `P()` / `photo_of()` become the plane homography, the reference camera follows
+automatically (`view = "CALIBRATED"`), landmarks stay in pixels. Choose the principal point from
+parallax (which end faces of thick parts are visible) and subtract `REF.thickness_px(u, hw)` from
+silhouette edges that face along the long axis. Worked example: `projects/PROP_AK_Rifle/landmarks.py`.
+
 ## 5. Anchor and RefMap
 Choose one well-defined point (front axle, a foot, a building corner at ground level), measure its
 px and define its world (Y, Z). `REF = RefMap(S, anchor_px, anchor_yz, theta, front_is_right)`.

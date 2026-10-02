@@ -51,6 +51,9 @@ def ensure(palette):
             continue
         s = _norm(PRESETS[spec] if isinstance(spec, str) else spec)
         m = bpy.data.materials.get(name) or bpy.data.materials.new(name)
+        if m.get("master"):                      # already a painted master-material instance: keep it
+            out[name] = m
+            continue
         m.use_nodes = True                       # deprecated in 5.x (warning only), still needed
         b = m.node_tree.nodes.get("Principled BSDF")
         b.inputs["Base Color"].default_value = (*s["rgb"], 1.0)

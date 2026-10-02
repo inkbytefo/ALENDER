@@ -97,11 +97,11 @@ CARB_BOX = (532, 355, 620, 402)       # u0, v0, u1, v1
 INTAKE_BOX = (490, 358, 540, 386)
 
 # --- exhaust (px centreline) ----------------------------------------------------
-HEADER_PATH = [(733, 398), (748, 412), (756, 440), (755, 475), (744, 506),
-               (722, 532), (692, 546), (650, 550)]
+HEADER_PATH = [(705, 398), (722, 415), (724, 440), (720, 470), (710, 498),
+               (692, 524), (672, 542), (650, 548)]
 MIDPIPE_PATH = [(650, 550), (600, 551), (540, 550), (492, 546)]
 MUFFLER_FRONT_PX = (490.0, 540.0)
-MUFFLER_REAR_PX = (402.0, 527.0)
+MUFFLER_REAR_PX = (402.0, 537.0)
 MUFFLER_R = 0.048
 
 # --- frame (px centrelines) ------------------------------------------------------
@@ -115,6 +115,14 @@ PIVOT_PLATE_POLY = [(478, 395), (528, 392), (532, 500), (500, 512), (476, 500)]
 FOOTPEG_PX = (446.0, 425.0)
 REARSET_PLATE_POLY = [(430, 410), (462, 404), (470, 440), (440, 446)]
 
+IMAGE_SIZE = (1080, 720)
+ANCHOR_PX = FRONT_AXLE_PX
+ANCHORS = [
+    ((0.0, *P(*FRONT_AXLE_PX)), FRONT_AXLE_PX),
+    ((0.0, *P(*REAR_AXLE_PX)), REAR_AXLE_PX),
+    ((0.0, *P(*SWINGARM_PIVOT_PX)), SWINGARM_PIVOT_PX),
+]
+
 # --- tank paint / knee recess (Stage 2) --------------------------------------------
 # Red upper shell overhangs a black recessed knee flank; below this line (and u < 662)
 # the tank side is black and set inward.
@@ -125,3 +133,65 @@ TANK_RECESS = 0.9            # x-scale of the recessed black flank
 
 # landmarks drawn as crosses by `wb.py compare`
 MARKS = [REAR_AXLE_PX, FRONT_AXLE_PX, SWINGARM_PIVOT_PX, HEADLIGHT_PX, FORK_TOP_PX]
+
+SWINGARM_POLY = [(495, 458), (300, 459), (268, 461), (262, 468), (262, 482), (268, 489),
+                (300, 491), (495, 490), (507, 480), (507, 468)]
+
+
+def _circle(c, r, n=24):
+    return [(c[0] + r * math.cos(2 * math.pi * k / n), c[1] + r * math.sin(2 * math.pi * k / n)) for k in range(n)]
+
+
+def _band(p0, p1, r):
+    dx, dy = p1[0] - p0[0], p1[1] - p0[1]
+    L_seg = math.hypot(dx, dy) or 1.0
+    nx, ny = -dy / L_seg * r, dx / L_seg * r
+    return [(p0[0] + nx, p0[1] + ny), (p1[0] + nx, p1[1] + ny),
+            (p1[0] - nx, p1[1] - ny), (p0[0] - nx, p0[1] - ny)]
+
+
+CARB_POLY = [(532, 362), (615, 364), (620, 396), (535, 396)]
+CANTILEVER_POLY = [(280, 462), (335, 430), (382, 408), (435, 424), (495, 458),
+                   (475, 462), (435, 434), (382, 420), (335, 442)]
+CHAIN_BAND = _band((260, 462), (512, 432), 7.0)
+CALIPER_BAND = _band((803, 442), (803, 475), 14.0)
+CTRL_L = [(710, 240), (745, 215), (748, 230), (715, 254)]
+CTRL_RES = [(758, 195), (774, 195), (774, 222), (758, 222)]
+CTRL_BAR = [(750, 230), (800, 245), (800, 254), (750, 242)]
+
+SILHOUETTE = [
+    _circle(FRONT_AXLE_PX, R_TYRE_F * S),
+    _circle(REAR_AXLE_PX, R_TYRE_R * S),
+    TANK_TOP + TANK_BOTTOM[::-1],
+    SEAT_TOP + SEAT_BOTTOM_V[::-1],
+    HUMP_TOP + HUMP_BOTTOM_V[::-1],
+    TAIL_TOP + TAIL_BOTTOM[::-1],
+    SIDEPANEL_POLY,
+    CRANKCASE_POLY,
+    TRANSMISSION_POLY,
+    CYL_POLY,
+    [(632, 344), (744, 356), (748, 338), (640, 328)],
+    _circle(ALT_COVER_PX, ALT_COVER_R),
+    _circle(SMALL_COVER_PX, SMALL_COVER_R),
+    SWINGARM_POLY,
+    PIVOT_PLATE_POLY,
+    _band(FRONT_AXLE_PX, FORK_TOP_PX, 16.0),
+    _band((762, 235), (776, 310), 16.0),
+    _circle(HEADLIGHT_PX, HEADLIGHT_R * S),
+    _band(MUFFLER_FRONT_PX, MUFFLER_REAR_PX, 19.5),
+    *[_band(HEADER_PATH[i], HEADER_PATH[i + 1], 10.0) for i in range(len(HEADER_PATH) - 1)],
+    *[_band(MIDPIPE_PATH[i], MIDPIPE_PATH[i + 1], 12.0) for i in range(len(MIDPIPE_PATH) - 1)],
+    _band(SHOCK_BOTTOM_PX, SHOCK_TOP_PX, 15.0),
+    CARB_POLY,
+    CANTILEVER_POLY,
+    CHAIN_BAND,
+    CALIPER_BAND,
+    CTRL_L,
+    CTRL_RES,
+    CTRL_BAR,
+    REARSET_PLATE_POLY,
+    *[_band(FRAME_DOWNTUBE[i], FRAME_DOWNTUBE[i + 1], 8.0) for i in range(len(FRAME_DOWNTUBE) - 1)],
+    *[_band(FRAME_BACKBONE[i], FRAME_BACKBONE[i + 1], 9.0) for i in range(len(FRAME_BACKBONE) - 1)],
+    *[_band(FRAME_SUB_UPPER[i], FRAME_SUB_UPPER[i + 1], 6.0) for i in range(len(FRAME_SUB_UPPER) - 1)],
+    *[_band(FRAME_SUB_LOWER[i], FRAME_SUB_LOWER[i + 1], 6.0) for i in range(len(FRAME_SUB_LOWER) - 1)],
+]

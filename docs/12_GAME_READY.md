@@ -60,3 +60,13 @@ headless Godot 4 import (`scripts/godot_import_check.gd`) when `$GODOT_EXECUTABL
 - The bake takes minutes at 2048 px (GPU); iterate with `--no-bake` / `--until 3` and bake last.
 - LOD decimation keeps UVs approximately; very aggressive ratios smear textures — keep ≥ 0.2.
 - Bone-driven characters (skins) are not covered by S4 yet: export rigs via docs/07.
+
+## Painted models: master material + Godot package (outside the S4 stage)
+`workbench.bl.master` paints a finished model with one master node group and per-surface instances
+(tri-planar, no UVs). Such a model cannot go through `game.bake` (DIFFUSE passes of node groups / metals);
+use `workbench.bl.godot.export_package(asset, high, classify, pivots, out_dir, prefix)` instead: merged game
+meshes, one atlas per texture set, bakes routed through the master group, GLB + FBX, `ORMMaterial3D` and
+`StandardMaterial3D` `.tres`, convex `-convcolonly` hull, re-import check. Examples:
+`projects/VEH_Gemini_Motorcycle/finish_*.py`, `projects/VEH_TT92_Racing_Car/stage5_paint.py` / `stage7_game.py`.
+Engine test: `GODOTTESTING/testingarea` (Godot 4.7.2, headless `--import`, screenshot mode `-- --shot file.png`).
+

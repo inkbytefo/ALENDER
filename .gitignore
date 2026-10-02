@@ -13,3 +13,7 @@ downloaded_resources/models/
 
 # local tool settings
 .claude/settings.local.json
+/AnimationWorkbench
+.AnimationWorkbench
+/GODOTTESTING
+.GODOTTESTING

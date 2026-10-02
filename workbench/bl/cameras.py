@@ -55,6 +55,8 @@ def reference_camera(ref, anchors, res=None, distance=7.0, name="CAM_REFERENCE")
         loc = getattr(ref, "cam_loc", (0.0, 0.0, distance))
         rot = getattr(ref, "cam_rot", (0.0, 0.0, math.radians(180.0)))
         cam = make(name, loc, rot, lens=lens, collection="00_REFERENCE")
+        cam.data.shift_x = getattr(ref, "shift_x", 0.0)      # principal point off the image centre (cropped photo)
+        cam.data.shift_y = getattr(ref, "shift_y", 0.0)
         cam["wb_image_size"] = cam_size
         bpy.context.view_layer.update()
         err = 0.0

@@ -1,7 +1,7 @@
 """
-STAGE 5 - CLEAN WORKSPACE         python wb.py build VEH_TT92_Racing_Car --stage 5
+STAGE 6 - CLEAN WORKSPACE         python wb.py build VEH_TT92_Racing_Car --stage 6
 
-Opens the pipeline file VEH_TT92_Racing_Car.blend (never modified) and writes
+Opens the painted pipeline file VEH_TT92_Racing_Car.blend (not modified here) and writes
     output/VEH_TT92_Racing_Car/blend/VEH_TT92_Racing_Car_WORKSPACE.blend
 - the file to open in the Blender GUI and work in:
     * only the final HIGH model (blockout, cutters, guides removed), geometry untouched
@@ -9,7 +9,8 @@ Opens the pipeline file VEH_TT92_Racing_Car.blend (never modified) and writes
       Fasteners (+ Reference with the top photo, Studio with lights and cameras)
     * everything parented to the VEH_TT92_Racing_Car root; wheels pivot on their axles
     * bevel / weighted-normal modifiers left LIVE so parts stay editable
-    * reference photo packed, orphan data purged, README text block inside the file
+    * master material MM_TT92_Master + 14 instances (paint.py); textures referenced by RELATIVE
+      path (material/ in the project folder), reference photo packed, orphans purged, README inside
 Hand edits made in this file are NOT picked up by the build: change landmarks.py / parts.py for
 anything that must survive a rebuild.
 """
@@ -56,8 +57,11 @@ Outliner
   Reference            top photo + ortho reference camera (hidden; numpad 0 with CAM_REFERENCE)
   Studio               3 area lights, perspective + ortho review cameras
 
-Materials (8): MAT_BODY_RED, MAT_STRIPE (stripes + heat wrap), MAT_CHROME, MAT_METAL_DARK,
-MAT_EXHAUST, MAT_GLOW (emissive afterburner liner), MAT_RUBBER, MAT_LEATHER.  BODY_Shell uses two slots: red skin + dark cut interiors.
+Materials: ONE master node group MM_TT92_Master (tint, macro variation, dirt, edge wear, bump,
+clear coat, sheen, anisotropy, emission) + 14 instances MAT_* that only set a texture set and a few
+numbers. Tune a surface: select the object > Shader Editor > the MASTER node's inputs.
+Tri-planar projection (MF_TT92_Projection, input Tile = metres per repeat): no UV unwrap needed.
+Textures live in projects/{A}/material/ (relative paths).
 
 Modifiers: Bevel + WeightedNormal are live on the hard-surface parts. BODY_Shell is baked
 (subsurf + booleans applied).
@@ -66,7 +70,8 @@ This file is generated. To change the car permanently edit the project and rebui
   projects/{A}/landmarks.py   numbers (sizes, positions)
   projects/{A}/parts.py       geometry recipes
   python wb.py build {A}            all stages
-  python wb.py build {A} --stage 5  only this workspace file
+  python wb.py build {A} --from 5   repaint + this workspace file
+  projects/{A}/paint.py       materials (INSTANCES = numbers, ASSIGN = which part gets what)
 """
 
 scene.open_blend(SRC)
@@ -140,9 +145,9 @@ sc.render.engine = "BLENDER_EEVEE"
 sc.render.resolution_x, sc.render.resolution_y = 1920, 1080
 sc.render.film_transparent = False
 sc.frame_set(1)
-for img in bpy.data.images:                                  # self-contained file
-    if img.filepath and not img.packed_file and img.source == "FILE":
-        img.pack()
+ref = bpy.data.images.get("REAL_REFERENCE.png")              # small: pack it; the PBR sets stay on disk
+if ref and not ref.packed_file:
+    ref.pack()
 txt = bpy.data.texts.get("README") or bpy.data.texts.new("README")
 txt.clear()
 txt.write(README)
@@ -157,9 +162,11 @@ for ob in meshes:
     me.calc_loop_triangles()
     tris += len(me.loop_triangles)
     ob.evaluated_get(dg).to_mesh_clear()
-print("[STAGE5] workspace:", len(meshes), "meshes,", tris, "tris,", len(bpy.data.materials), "materials")
+print("[STAGE6] workspace:", len(meshes), "meshes,", tris, "tris,", len(bpy.data.materials), "materials")
 for name, c in groups.items():
-    print(f"[STAGE5]   {name:<11}{len(c.objects):>4} objects")
-print("[STAGE5] collections:", sorted(c.name for c in bpy.data.collections))
+    print(f"[STAGE6]   {name:<11}{len(c.objects):>4} objects")
+print("[STAGE6] collections:", sorted(c.name for c in bpy.data.collections))
 scene.save(DST)
-print("[STAGE5] PASS")
+bpy.ops.file.make_paths_relative()                           # textures: //..\..\..\projects\...\material
+scene.save(DST)
+print("[STAGE6] PASS")

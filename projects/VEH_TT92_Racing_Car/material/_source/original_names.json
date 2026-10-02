@@ -1,0 +1,18 @@
+{
+ "Aşınmış Gri Metal Doku.png": "_source/chrome_worn_grey.png",
+ "Eskimiş Kırmızı Metal Boyası Dokusu.png": "_source/paint_red_aged.png",
+ "Eskitilmiş Krem Boya Yüzeyi.png": "_source/paint_cream_aged.png",
+ "Fırçalanmış Çelik Metal Dokusu.png": "_source/steel_brushed.png",
+ "Fırçalanmış Çelik Normal Haritası.png": "_source/steel_brushed_normal.png",
+ "Gerçekçi Gri Beton Yüzeyi.png": "_source/aluminium_cast.png",
+ "Gökkuşağı Oksitli Metal Dokusuyla Patina.png": "_source/stainless_heat_tint.png",
+ "Koyu Amber Mermer Doku.png": "_source/lens_amber_smoked.png",
+ "Koyu Karbon Kompozit Doku.png": "_source/carbon_forged.png",
+ "Koyu Kızıl Maun Ahşap Dokusu.png": "_source/wood_mahogany.png",
+ "Mat Siyah Granüllü Yüzey Tekstürü.png": "_source/black_coated.png",
+ "Neon Plazma Dalgaları normal map.png": "_rejected/afterburner_plasma_normal_BROKEN.png",
+ "Neon Plazma Dalgaları.png": "_source/afterburner_plasma.png",
+ "Yıpranmış Koyu Gri Gritli Yüzey.png": "_source/tyre_rubber_worn.png",
+ "İsli Kaba Jüt Dokusu normal.png": "_source/exhaust_wrap_jute_normal.png",
+ "İsli Kaba Jüt Dokusu.png": "_source/exhaust_wrap_jute.png"
+}

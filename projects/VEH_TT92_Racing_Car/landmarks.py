@@ -62,7 +62,7 @@ RIM_RATIO = 0.74                   # rim / tyre radius [DESIGN]
 # ============================================================================ BODY SHELL
 # The shell is a loft of superellipse sections, one per station v (px along the car).
 BODY_NOSE_V = 120.0                # flat nose face
-BODY_TAIL_V = 1110.0               # round tail face (radius 0.14 m) carrying the afterburner [DESIGN]
+BODY_TAIL_V = 1090.0               # round tail face (radius 0.14 m) carrying the afterburner [DESIGN]
 # half width (px). 250 <= v <= 950 [PHOTO]; v < 250 [DESIGN] wedge nose; v > 950 [DESIGN] round tail
 BODY_HW_PX = [(120, 60), (124, 66), (130, 70), (140, 74), (150, 77), (165, 81), (185, 87),
               (200, 91), (250, 97), (450, 97), (550, 98), (650, 99), (700, 103), (840, 102),
@@ -138,16 +138,16 @@ ENG_Y_CENTRE = -0.37               # middle of the blocks (v ~ 469)
 HEADER_V = [429.0, 456.0, 482.0, 509.0]    # = the V8 cylinder pitch
 # right pipe centre line (u px, v px, z m), collector -> afterburner can
 EXHAUST_PATH = [(453, 548, 0.400), (457, 600, 0.395), (458, 700, 0.385), (457, 800, 0.375),
-                (456, 900, 0.370), (452, 980, 0.375), (435, 1040, 0.395), (412, 1085, 0.415),
-                (400, 1112, 0.425)]
+                (456, 900, 0.370), (452, 980, 0.375), (432, 1032, 0.395), (412, 1068, 0.415),
+                (402, 1090, 0.425)]
 EXHAUST_WRAP_V = (640.0, 890.0)    # heat-wrapped section
 EXHAUST_R = 9.0 / S                # 18 px pipe
 EXHAUST_WRAP_R = 11.0 / S
 # ONE afterburner on the centre line, on the round tail face [DESIGN] (jet nozzle / slotted tip /
 # glowing collector references). Distances along the car are measured from the tail face (+ = rear).
 AB_CAN_R = 0.168                   # chrome can sleeved over the tail end (tail face radius 0.144)
-AB_CAN = (-0.035, 0.150)           # can front / rear
-AB_PETAL_LEN = 0.23                # converging petals behind the can
+AB_CAN = (-0.035, 0.085)           # can front / rear
+AB_PETAL_LEN = 0.12                # converging petals behind the can
 AB_EXIT_R = 0.130                  # petal ring radius at the exit
 AB_PETALS = 14
 AB_SLOTS = 10                      # heat slots around the can

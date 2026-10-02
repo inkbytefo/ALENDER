@@ -372,7 +372,18 @@ def stage4(ctx):
     size = G["tex"] or B["tex"]
     if G["bake"]:
         t0 = time.time()
-        tex = game.bake(hp, list(lod0.values()), paths.out(A, "textures"), size, prefix=f"T_{A}")
+        # master-material instances (workbench.bl.master) bake through the group's own inputs
+        from workbench.bl import master
+        grp = next((g for g in bpy.data.node_groups if g.name.startswith("MM_") and g.name.endswith("_Master")), None)
+        router = None
+        if grp is not None and any(m.get("master") for o in hp for m in o.data.materials if m):
+            master.MASTER = grp.name
+            router = master.BakeRouter()
+        try:
+            tex = game.bake(hp, list(lod0.values()), paths.out(A, "textures"), size, prefix=f"T_{A}", router=router)
+        finally:
+            if router is not None:
+                router.close()
         metrics["bake"] = dict(tex["stats"], seconds=round(time.time() - t0, 1))
         log(4, "bake", metrics["bake"])
         game.assign_single(lod0.values(), game.game_material(f"MAT_{A}_Baked", tex))
@@ -404,7 +415,8 @@ def stage4(ctx):
     files = {}
     for n, lvl in levels.items():
         objs_n = list(lvl.values()) + ([c for _, c, _ in cols] if n == 0 else [])
-        files[n] = export.glb([root] + objs_n, paths.out(A, "glb", f"{A}_LOD{n}.glb"))
+        files[n] = export.glb([root] + objs_n, paths.out(A, "glb", f"{A}_LOD{n}.glb"),
+                              image_format=G.get("image_format", "AUTO"), image_quality=G.get("image_quality", 90))
     if tables.ENGINES[G["engine"]]["fmt"] == "fbx":
         export.fbx([root] + list(levels[0].values()) + [c for _, c, _ in cols], paths.out(A, "fbx", f"{A}_LOD0.fbx"))
     # --- checks

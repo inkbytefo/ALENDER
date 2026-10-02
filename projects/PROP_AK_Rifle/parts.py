@@ -1,23 +1,26 @@
 """
 Part builders for PROP_AK_Rifle (staged pipeline, docs/01_WORKFLOW.md). Every builder takes a stage
-profile and reads ALL placement from landmarks.py (pixels). Library map: docs/04_MODELING_TOOLKIT.md.
+profile P and reads ALL placement from landmarks.py (pixels). Shape helpers: shapes.py.
 
   S1 PRIMITIVE  *_prim builders: boxes / cylinders / simplified outlines from the same landmarks
   S2 LOWPOLY    the real builders with PROFILES[2] (game LOD0: no bevels, no rivets / ribs)
-  S3 DETAIL     the same builders with PROFILES[3] (= the former HIGH: bevels, ribs, rivets)
+  S3 DETAIL     the same builders with PROFILES[3] (bevels, ribs, rivets, buttplate details)
   S4 GAME       bake S3 -> S2 atlas, LOD1-2, per-part convex hulls, Godot-ready glb
 
 Groups: RECV_ (receiver), SIGHT_, BARREL_, GAS_, FSB_ (front sight), MUZZLE_, WOOD_, GRIP_, MAG_,
 CTRL_ (trigger, guard, safety, mag catch, charging handle), FASTENER_.
-Right-side-only parts (photo side) sit at -X. Stage suffixes (_PRIM/_LP/_HP) come from nm().
+Right-side-only parts (photo side) sit at -X.
 """
 import math
-import bmesh
+
+import bpy
 from mathutils import Vector
 
 import landmarks as L
+import shapes as S
+from shapes import hard, plate
 from workbench import tables, stages, silhouette
-from workbench.stages import Part
+from workbench.stages import Part, nm
 from workbench.bl import mesh, mods, prim
 
 mesh.set_ref(L.REF)
@@ -28,9 +31,11 @@ GROUND = False                         # hand-held: origin on the bore axis, par
 PROFILES = {
     1: stages.profile(1, ring=8, lathe=8, stations=6, mag_st=6),
     2: stages.profile(2, ring=16, lathe=16, stations=20, mag_st=16),
-    3: stages.profile(3, ring=28, lathe=28, stations=26, mag_st=26),      # = former HIGH (18,668 tris)
+    3: stages.profile(3, ring=28, lathe=28, stations=26, mag_st=26),
 }
-GAME = dict(engine="godot", bake=True, tex=2048, lod=(0.5, 0.25), drop_small_m=0.03)
+# painted atlas: the PNG masters stay in output/<A>/textures, the glb embeds JPEG (3 x ~6 MB PNG otherwise)
+GAME = dict(engine="godot", bake=True, tex=2048, lod=(0.5, 0.25), drop_small_m=0.03,
+            image_format="JPEG", image_quality=92)
 LICENCE = "own procedural build; downloaded AK47.blend studied only, nothing reused"
 UNCERTAIN = ["all widths (X) estimated (pure side photo)", "left side mirrored from the right",
              "rear sight leaf / slider simplified", "magazine top and internals not modelled"]
@@ -49,373 +54,207 @@ CRITICAL_PAIRS = [("MAG_", "GRIP_"), ("MAG_", "CTRL_Trigger"), ("MAG_", "CTRL_Ma
                   ("CTRL_Safety", "GRIP_"), ("WOOD_Stock", "GRIP_")]
 
 
-def nm(lod, name):
-    return stages.nm(lod, name)
-
-
-def hard(ob, lod, bevel=0.0012, segments=2):
-    """hard-surface finish at HIGH: bevel + weighted normals. Never subsurf plates."""
-    if lod["bevel"] and bevel:
-        mods.bevel(ob, bevel, segments)
-        mods.weighted_normal(ob)
-    return ob
-
-
 def Y(u):
+    """world Y of a px column (on the bore line)."""
     return L.P(u, L.BORE_V)[0]
 
 
-def Z(v):
-    return L.P(L.ANCHOR_PX[0], v)[1]
+def Z(u, v):
+    """world Z of a px point."""
+    return L.P(u, v)[1]
 
 
-# ============================================================================ geometry helpers
-def _arc_sample(poly, n):
-    """n points evenly spaced by arc length along a px polyline."""
-    pts = [Vector(p) for p in poly]
-    seg = [(pts[i + 1] - pts[i]).length for i in range(len(pts) - 1)]
-    tot = sum(seg)
-    out = []
-    for k in range(n):
-        d = tot * k / (n - 1)
-        i = 0
-        while i < len(seg) - 1 and d > seg[i]:
-            d -= seg[i]
-            i += 1
-        f = min(1.0, d / seg[i]) if seg[i] else 0.0
-        out.append(pts[i].lerp(pts[i + 1], f))
-    return out
-
-
-def _ring_two(a_px, b_px, hw, n, e_a=2.6, e_b=2.6, grow=0.0):
-    """Superellipse ring in the plane through px points a (top/rear) and b, spanning X +-hw.
-    grow (m) inflates the ring in both directions (floorplates, lips)."""
-    A = Vector(L.P(*a_px))
-    B = Vector(L.P(*b_px))
-    mid = (A + B) / 2
-    d = (B - A) / 2
-    h = d.length
-    dn = d.normalized()
-    ring = []
-    for k in range(n):
-        t = 2 * math.pi * (k + 0.5) / n
-        c, s = math.cos(t), math.sin(t)
-        e = e_a if s >= 0 else e_b
-        along = math.copysign(abs(s) ** (2.0 / e), s)            # +1 = a, -1 = b
-        across = math.copysign(abs(c) ** (2.0 / e), c)
-        p = mid - dn * (h + grow) * along
-        ring.append(Vector((across * (hw + grow), p.x, p.y)))
-    return ring
-
-
-def loft_pairs(name, coll, pairs, hws, n, mat, e_a=2.6, e_b=2.6, caps=True, grow=0.0, **kw):
-    rings = [_ring_two(a, b, hw, n, e_a, e_b, grow) for (a, b), hw in zip(pairs, hws)]
-    return mesh.loft_rings(name, coll, rings, mat, caps=caps, **kw)
-
-
-def pairs_by_u(top, bot, u0t, u1t, u0b, u1b, n):
-    """station pairs: top point at u_t, bottom point at u_b (slanted ends allowed)."""
-    out = []
-    for i in range(n):
-        f = i / (n - 1)
-        ut, ub = u0t + (u1t - u0t) * f, u0b + (u1b - u0b) * f
-        out.append(((ut, tables.polyline_v(top, ut)), (ub, tables.polyline_v(bot, ub))))
-    return out
-
-
-def plate(name, coll, poly, hw, mat, x0=None, x1=None, **kw):
-    a = -hw if x0 is None else x0
-    b = hw if x1 is None else x1
-    return mesh.plate(name, coll, poly, a, b, mat, **kw)
-
-
-def domes(name, coll, pts_px, x_face, r, h, segs, mat, outward=-1.0):
-    """Many rivet heads (flattened domes) in ONE object on a face at X = x_face."""
-    bm = bmesh.new()
-    prof = [(r, 0.0), (r * 0.92, h * 0.45), (r * 0.62, h * 0.85), (0.0, h)]
-    for (u, v) in pts_px:
-        y, z = L.P(u, v)
-        rings = []
-        for (rr, hh) in prof:
-            if rr == 0.0:
-                rings.append([bm.verts.new((x_face + outward * hh, y, z))])
-                continue
-            rings.append([bm.verts.new((x_face + outward * hh, y + rr * math.cos(2 * math.pi * k / segs),
-                                        z + rr * math.sin(2 * math.pi * k / segs))) for k in range(segs)])
-        for i in range(len(rings) - 1):
-            a_, b_ = rings[i], rings[i + 1]
-            for k in range(segs):
-                if len(b_) == 1:
-                    bm.faces.new((a_[k], a_[(k + 1) % segs], b_[0]))
-                else:
-                    bm.faces.new((a_[k], a_[(k + 1) % segs], b_[(k + 1) % segs], b_[k]))
-        bm.faces.new(list(reversed(rings[0])))
-    return mesh.finish(name, bm, coll, mat, sharp_angle=60)
-
-
-def tubes(name, coll, paths, r, segs, mat, samples=3, taper=False):
-    """Several swept tubes merged into ONE object (magazine ribs)."""
-    bm = bmesh.new()
-    for pts in paths:
-        pts = mesh.catmull(pts, samples)
-        if taper:                              # short rounded caps instead of flat cut ends
-            a0 = (pts[0] - pts[1]).normalized()
-            a1 = (pts[-1] - pts[-2]).normalized()
-            pts = ([pts[0] + a0 * r * 0.9, pts[0] + a0 * r * 0.5] + list(pts)
-                   + [pts[-1] + a1 * r * 0.5, pts[-1] + a1 * r * 0.9])
-        n = len(pts)
-        tang = []
-        for i in range(n):
-            t = (pts[min(i + 1, n - 1)] - pts[max(i - 1, 0)]).normalized()
-            tang.append(t)
-        nrm, _ = mesh.frame_for(tang[0])
-        rings = []
-        for i in range(n):
-            t = tang[i]
-            nrm = (nrm - t * nrm.dot(t)).normalized()
-            b = t.cross(nrm)
-            rr = r * ({0: 0.45, 1: 0.85, n - 2: 0.85, n - 1: 0.45}.get(i, 1.0) if taper else 1.0)
-            rings.append([bm.verts.new(pts[i] + rr * (math.cos(2 * math.pi * k / segs) * nrm
-                                                     + math.sin(2 * math.pi * k / segs) * b))
-                          for k in range(segs)])
-        for i in range(n - 1):
-            for k in range(segs):
-                bm.faces.new((rings[i][k], rings[i][(k + 1) % segs], rings[i + 1][(k + 1) % segs],
-                              rings[i + 1][k]))
-        bm.faces.new(list(reversed(rings[0])))
-        bm.faces.new(rings[-1])
-    return mesh.finish(name, bm, coll, mat, sharp_angle=70)
-
-
-def slant_brake(name, coll, u0, u_top, u_bot, r, bore_r, segs, mat):
-    """AKM slant compensator: tube around Y whose front face is a plane (long lower lip)."""
-    y0, yt, yb = Y(u0), Y(u_top), Y(u_bot)
-    ymid, k = (yt + yb) / 2, (yt - yb) / (2 * r)
-    bm = bmesh.new()
-
-    def ring(rad, yfun):
-        out = []
-        for i in range(segs):
-            a = 2 * math.pi * i / segs
-            x, z = rad * math.cos(a), rad * math.sin(a)
-            out.append(bm.verts.new((x, yfun(z), z)))
-        return out
-    ob_ = ring(r, lambda z: y0)
-    of_ = ring(r, lambda z: ymid + z * k)
-    if_ = ring(bore_r, lambda z: ymid + z * k)
-    ib_ = ring(bore_r, lambda z: y0)
-    for A, B in ((ob_, of_), (of_, if_), (if_, ib_), (ib_, ob_)):
-        for i in range(segs):
-            bm.faces.new((A[i], A[(i + 1) % segs], B[(i + 1) % segs], B[i]))
-    return mesh.finish(name, bm, coll, mat, sharp_angle=35)
-
-
-# ============================================================================ builders
-def receiver(lod):
-    C = lod["C_PRIMARY"]
-    out = []
-    body = plate(nm(lod, "RECV_Body"), C, L.RECV_BODY, L.HW_RECV, STEEL)
-    out.append(hard(body, lod, 0.0015))
-    u0, u1 = L.RECV_END_U
-    end = plate(nm(lod, "RECV_RearTrunnion"), C, [(u0, 270), (u1, 270), (u1, 342), (u0, 342)],
-                L.HW_RECV + 0.0008, STEEL)
-    out.append(hard(end, lod, 0.0012))
-    n = lod["stations"]
-    us = [441 + (800 - 441) * (i / (n - 1)) ** 0.7 for i in range(n)]      # denser at the round rear
-    pairs = [((u, tables.polyline_v(L.COVER_TOP, u)), (u, tables.polyline_v(L.COVER_BOT, u))) for u in us]
-    cover = loft_pairs(nm(lod, "RECV_DustCover"), C, pairs, [L.HW_COVER] * n, lod["ring"], STEEL,
-                       e_a=2.4, e_b=7.0, sharp_angle=50)
-    out.append(cover)
-    # left wall above the port level (the port is only on the right side)
-    lw = plate(nm(lod, "RECV_WallLeft"), C, [(698, 249), (832, 249), (832, 268), (698, 270)], 0,
-               STEEL, x0=0.0, x1=L.HW_RECV)
-    out.append(hard(lw, lod, 0.001))
-    rs = plate(nm(lod, "SIGHT_RearBase"), C, L.REAR_SIGHT_BASE, L.HW_RSIGHT, STEEL)
-    out.append(hard(rs, lod, 0.0012))
-    leaf = plate(nm(lod, "SIGHT_RearLeaf"), lod["C_SECONDARY"], L.REAR_SIGHT_LEAF, L.HW_LEAF, STEEL)
-    out.append(hard(leaf, lod, 0.0006))
-    post = plate(nm(lod, "SIGHT_RearPost"), lod["C_SECONDARY"], L.REAR_SIGHT_POST, L.HW_LEAF * 0.6, STEEL)
-    out.append(hard(post, lod, 0.0005))
+# ============================================================================ receiver + sights
+def receiver(P):
+    C = P["coll"]
+    out = [hard(plate(nm(P, "RECV_Body"), C, L.RECV_BODY, L.HW_RECV, STEEL), P, 0.0015),
+           hard(plate(nm(P, "RECV_RearTrunnion"), C, L.RECV_TRUNNION, L.HW_TRUNNION, STEEL), P, 0.0012)]
+    n = P["stations"]
+    pairs = S.pairs_between(L.COVER_TOP, L.COVER_BOT, L.COVER_U, L.COVER_U, n, bias=0.7)   # dense at the round rear
+    out.append(S.loft_pairs(nm(P, "RECV_DustCover"), C, pairs, [L.HW_COVER] * n, P["ring"], STEEL,
+                            e_a=2.4, e_b=7.0, sharp_angle=50))
+    out.append(hard(plate(nm(P, "RECV_WallLeft"), C, L.RECV_WALL_LEFT, 0, STEEL, x0=0.0, x1=L.HW_RECV), P, 0.001))
+    out.append(hard(plate(nm(P, "SIGHT_RearBase"), C, L.REAR_SIGHT_BASE, L.HW_RSIGHT, STEEL), P, 0.0012))
+    out.append(hard(plate(nm(P, "SIGHT_RearLeaf"), C, L.REAR_SIGHT_LEAF, L.HW_LEAF, STEEL), P, 0.0006))
+    out.append(hard(plate(nm(P, "SIGHT_RearPost"), C, L.REAR_SIGHT_POST, L.HW_LEAF * 0.6, STEEL), P, 0.0005))
     y, z = L.P(*L.REAR_SIGHT_SLIDER_PX)
-    sl = mesh.box(nm(lod, "SIGHT_Slider"), lod["C_SECONDARY"], (0, y, z + 0.0005),
-                  (2 * L.HW_LEAF + 0.004, 0.009, 0.006), STEEL)
-    out.append(hard(sl, lod, 0.0008))
+    out.append(hard(mesh.box(nm(P, "SIGHT_Slider"), C, (0, y, z + 0.0005), L.REAR_SIGHT_SLIDER_SIZE, STEEL),
+                    P, 0.0008))
     return out
 
 
-def barrel(lod):
-    C = lod["C_PRIMARY"]
-    s = lod["lathe"]
-    prof = [(L.m(r), Y(u)) for (u, r) in L.BARREL]
-    out = [mesh.lathe(nm(lod, "BARREL_Main"), C, (0, 0, 0), prof, s, STEEL, closed=False, axis="Y",
-                      sharp_angle=30)]
-    gb = plate(nm(lod, "GAS_Block"), C, L.GAS_BLOCK, L.HW_GASBLOCK, STEEL)
-    out.append(hard(gb, lod, 0.002, 3))
-    lug = plate(nm(lod, "GAS_BayonetLug"), lod["C_SECONDARY"], L.BAYONET_LUG, 0.004, STEEL)
-    out.append(hard(lug, lod, 0.0008))
-    g = L.GAS_TUBE
-    zt = Z(g["v"])
-    out.append(mesh.cyl(nm(lod, "GAS_Tube"), C, (0, Y(918), zt), (0, Y(g["u1"]), zt), L.m(g["r"]), s,
-                        STEEL))
-    if lod["detail"]:
-        a, b = L.GAS_TUBE_RING_U
-        out.append(mesh.cyl(nm(lod, "GAS_TubeRing"), lod["C_DETAIL"], (0, Y(a), zt), (0, Y(b), zt),
-                            L.m(g["r"]) + 0.0007, s, STEEL))
-    # front sight: base block around the barrel + two protective ears + a thin centre post.
-    # v2: the block is the outline BELOW the ear base; v1 clamped with min() and built the ear region
-    # as a solid block while the block under the barrel was missing (found by gates R01/R02).
+# ============================================================================ barrel group
+def front_sight(P):
+    """Base block around the barrel (the FSB outline below the ear base), two protective ears with
+    the adjustment hole, and a thin centre post."""
+    C = P["coll"]
     eb = L.FSB_EAR_BASE_V
-    base = [(min(p[0] for p in L.FSB), eb), (max(p[0] for p in L.FSB), eb)] + [p for p in L.FSB if p[1] > eb]
-    out.append(hard(plate(nm(lod, "FSB_Body"), C, base, L.HW_FSB, STEEL), lod, 0.0015))
+    # outline without sub-2 px steps: bevels collapse such short edges into 0-area faces (U16)
+    fsb = silhouette.simplify(L.FSB + [L.FSB[0]], 1.0)[:-1]
+    us = [p[0] for p in fsb]
+    base = [(min(us), eb), (max(us), eb)] + [p for p in fsb if p[1] > eb]
+    out = [hard(plate(nm(P, "FSB_Body"), C, base, L.HW_FSB, STEEL), P, 0.0008)]
+    u0, u1 = L.FSB_EAR_FOOT_U
+    ear_poly = [p for p in fsb if p[1] <= eb + 2] + [(u1, eb + 2), (u0, eb + 2)]
     y, z = L.P(*L.FSB_HOLE_PX)
-    import bpy
-    for side in (-1, 1):
+    for side, tag in ((-1, "R"), (1, "L")):
         x0, x1 = sorted((side * L.HW_FSB, side * (L.HW_FSB - L.FSB_EAR_T)))
-        ear = plate(nm(lod, "FSB_Ear_" + ("R" if side < 0 else "L")), C,
-                    [p for p in L.FSB if p[1] <= L.FSB_EAR_BASE_V + 2] + [(1388, L.FSB_EAR_BASE_V + 2),
-                                                                          (1346, L.FSB_EAR_BASE_V + 2)],
-                    0, STEEL, x0=x0, x1=x1)
-        cut = mesh.cyl("TEMP_FSB_Hole", C, (-0.02, y, z), (0.02, y, z), L.m(L.FSB_HOLE_R_PX), 16, STEEL)
+        ear = plate(nm(P, "FSB_Ear_" + tag), C, ear_poly, 0, STEEL, x0=x0, x1=x1)
+        cut = mesh.cyl("TEMP_FSB_Hole", C, (-0.02, y, z), (0.02, y, z), L.m(L.FSB_HOLE_R_PX, L.FSB_HOLE_PX[0]), 16, STEEL)
         mods.boolean(ear, cut, apply=True)
         bpy.data.objects.remove(cut, do_unlink=True)
-        out.append(hard(ear, lod, 0.0007))
-    out.append(hard(plate(nm(lod, "FSB_Post"), C, L.FSB_POST, 0.0012, STEEL), lod, 0.0005))
+        out.append(hard(ear, P, 0.0007))
+    out.append(hard(plate(nm(P, "FSB_Post"), C, L.FSB_POST, L.HW_FSB_POST, STEEL), P, 0.0005))
+    return out
+
+
+def barrel(P):
+    C, s = P["coll"], P["lathe"]
+    prof = [(L.m(r, u), Y(u)) for (u, r) in L.BARREL]
+    out = [mesh.lathe(nm(P, "BARREL_Main"), C, (0, 0, 0), prof, s, STEEL, closed=False, axis="Y",
+                      sharp_angle=30),
+           hard(plate(nm(P, "GAS_Block"), C, L.GAS_BLOCK, L.HW_GASBLOCK, STEEL), P, 0.002, 3),
+           hard(plate(nm(P, "GAS_BayonetLug"), C, L.BAYONET_LUG, L.HW_LUG, STEEL), P, 0.0008)]
+    g = L.GAS_TUBE
+    um = (g["um"])                                   # column where v / r were measured
+    zt, rt = Z(um, g["v"]), L.m(g["r"], um)
+    out.append(mesh.cyl(nm(P, "GAS_Tube"), C, (0, Y(g["u0"]), zt), (0, Y(g["u1"]), zt), rt, s, STEEL))
+    if P["detail"]:
+        a, b = L.GAS_TUBE_RING_U
+        out.append(mesh.cyl(nm(P, "GAS_TubeRing"), C, (0, Y(a), zt), (0, Y(b), zt), rt + 0.0007, s,
+                            STEEL))
+    out += front_sight(P)
     b = L.BRAKE
     cu0, cu1, cr = b["collar"]
-    out.append(mesh.cyl(nm(lod, "MUZZLE_Collar"), lod["C_SECONDARY"], (0, Y(cu0), 0), (0, Y(cu1), 0),
-                        L.m(cr), s, STEEL))
-    out.append(slant_brake(nm(lod, "MUZZLE_Brake"), lod["C_SECONDARY"], b["u0"], b["top_end"],
-                           b["bot_end"], L.m(b["r"]), L.m(b["bore"]), s, STEEL))
+    out.append(mesh.cyl(nm(P, "MUZZLE_Collar"), C, (0, Y(cu0), 0), (0, Y(cu1), 0), L.m(cr, cu0), s, STEEL))
+    out.append(S.slant_brake(nm(P, "MUZZLE_Brake"), C, Y(b["u0"]),
+                             lambda z: Y(tables.interp(b["front"], L.photo_of(Y(b["u0"]), z)[1])),
+                             L.m(b["r"], b["u0"]), L.m(b["bore"], b["u0"]), s, STEEL))
     return out
 
 
-def woodwork(lod):
-    C = lod["C_PRIMARY"]
-    n, rn = lod["stations"], lod["ring"]
-    out = []
+# ============================================================================ wood
+def woodwork(P):
+    C = P["coll"]
+    n, rn = P["stations"], P["ring"]
     # lower handguard: flat-ish top channel, rounded belly, finger swell at the rear
-    pairs = pairs_by_u(L.HG_LOWER_TOP, L.HG_LOWER_BOT, 852, 1086, 852, 1086, n)
+    u = (L.HG_LOWER_BOT[0][0], L.HG_LOWER_BOT[-1][0])
+    pairs = S.pairs_between(L.HG_LOWER_TOP, L.HG_LOWER_BOT, u, u, n)
     hws = [tables.interp(L.HW_HG_LOWER, a[0]) for a, _ in pairs]
-    out.append(loft_pairs(nm(lod, "WOOD_HandguardLower"), C, pairs, hws, rn, WOOD, e_a=5.0, e_b=2.6,
-                          sharp_angle=80))
-    pairs = pairs_by_u(L.HG_UPPER_TOP, L.HG_UPPER_BOT, 935, 1084, 935, 1084, max(6, n // 2))
+    out = [S.loft_pairs(nm(P, "WOOD_HandguardLower"), C, pairs, hws, rn, WOOD, e_a=5.0, e_b=2.6,
+                        sharp_angle=80)]
+    u = (L.HG_UPPER_TOP[0][0], L.HG_UPPER_TOP[-1][0])
+    pairs = S.pairs_between(L.HG_UPPER_TOP, L.HG_UPPER_BOT, u, u, max(6, n // 2))
     hws = [tables.interp(L.HW_HG_UPPER, a[0]) for a, _ in pairs]
-    out.append(loft_pairs(nm(lod, "WOOD_HandguardUpper"), C, pairs, hws, rn, WOOD, e_a=2.3, e_b=4.5,
-                          sharp_angle=80))
-    cap = plate(nm(lod, "RECV_HandguardRearCap"), lod["C_SECONDARY"], L.HG_REAR_CAP, 0.0150, STEEL)
-    out.append(hard(cap, lod, 0.002, 3))
-    band = plate(nm(lod, "RECV_HandguardBand"), lod["C_SECONDARY"], L.HG_FRONT_BAND, 0.0195, STEEL)
-    out.append(hard(band, lod, 0.002, 3))
+    out.append(S.loft_pairs(nm(P, "WOOD_HandguardUpper"), C, pairs, hws, rn, WOOD, e_a=2.3, e_b=4.5,
+                            sharp_angle=80))
+    out.append(hard(plate(nm(P, "RECV_HandguardRearCap"), C, L.HG_REAR_CAP, L.HW_HG_CAP, STEEL), P, 0.002, 3))
+    out.append(hard(plate(nm(P, "RECV_HandguardBand"), C, L.HG_FRONT_BAND, L.HW_HG_BAND, STEEL), P, 0.002, 3))
+    out.append(hard(plate(nm(P, "RECV_HandguardRetainer"), C, L.HG_RETAINER, L.HW_HG_RETAINER, STEEL), P, 0.001))
     return out
 
 
-# ============================================================================ buttstock (v2)
-def _smooth(poly, samples):
-    """Catmull-Rom smoothed px polyline (removes kinks of hand-measured points)."""
-    return [(p.x, p.y) for p in mesh.catmull([Vector(q) for q in poly], samples)]
-
-
-def _ring_centre(ring):
-    return sum(ring, Vector()) / len(ring)
-
-
-def _inflate(ring, d, shift=Vector()):
-    c = _ring_centre(ring)
-    return [p + (p - c).normalized() * d + shift for p in ring]
-
-
-def buttstock(lod):
+def buttstock(P):
     """AKM laminated stock: straight top with a shallow comb dip, straight belly rising to the
-    wrist, slab sides with rounded top/bottom, slanted butt; steel buttplate that wraps 3 mm onto
-    the wood, with horizontal grip ribs, cleaning-kit trapdoor and two screws on its back face."""
-    C = lod["C_PRIMARY"]
-    n, rn = lod["stations"] + 10, lod["ring"]
-    top = _smooth(L.STOCK_TOP, 4 if lod["detail"] else 1)
-    bot = _smooth(L.STOCK_BOT, 4 if lod["detail"] else 1)
-    (ut0, ub0), u1 = L.STOCK_BUTT_U, L.STOCK_FRONT_U
-    pairs = []
-    for i in range(n):
-        f = (i / (n - 1)) ** 1.15                      # a bit denser at the butt
-        ut, ub = ut0 + (u1 - ut0) * f, ub0 + (u1 - ub0) * f
-        pairs.append(((ut, tables.polyline_v(top, ut)), (ub, tables.polyline_v(bot, ub))))
-    rings = []
-    for (a, b) in pairs:
-        u = (a[0] + b[0]) / 2
-        rings.append(_ring_two(a, b, tables.interp(L.HW_STOCK, u), rn, L.STOCK_E_TOP, L.STOCK_E_BOT))
-    out = [mesh.loft_rings(nm(lod, "WOOD_Stock"), C, rings, WOOD, sharp_angle=80)]
+    wrist, slab sides with rounded top/bottom, slanted butt; steel buttplate wrapping onto the wood."""
+    C = P["coll"]
+    n, rn = P["stations"] + 10, P["ring"]
+    k = 4 if P["detail"] else 1
+    # the butt is seen ~14 deg from behind: its silhouette overhangs the mid-plane end by `d` px
+    d = L.REF.thickness_px(L.STOCK_BUTT_U[0], tables.interp(L.HW_STOCK, L.STOCK_BUTT_U[0]))
+    pairs = S.pairs_between(S.smooth(L.STOCK_TOP, k), S.smooth(L.STOCK_BOT, k),
+                            (L.STOCK_BUTT_U[0] + d, L.STOCK_FRONT_U), (L.STOCK_BUTT_U[1] + d, L.STOCK_FRONT_U),
+                            n, bias=1.15)                                   # a bit denser at the butt
+    rings = [S.ring_two(a, b, tables.interp(L.HW_STOCK, (a[0] + b[0]) / 2), rn, L.STOCK_E_TOP, L.STOCK_E_BOT)
+             for (a, b) in pairs]
+    out = [mesh.loft_rings(nm(P, "WOOD_Stock"), C, rings, WOOD, sharp_angle=80)]
 
     # buttplate: loft of inflated copies of the butt ring (wrap onto the wood -> back face)
     r0 = rings[0]
-    axis = (_ring_centre(rings[1]) - _ring_centre(r0)).normalized()        # points forward (-Y)
-    back = -axis
-    t = L.BUTTPLATE_T
-    bp_rings = [_inflate(r0, 0.0006, axis * L.BUTTPLATE_WRAP), _inflate(r0, 0.0009),
-                _inflate(r0, 0.0009, back * t * 0.6), _inflate(r0, 0.0002, back * t)]
-    out.append(hard(mesh.loft_rings(nm(lod, "WOOD_ButtPlate"), lod["C_SECONDARY"], bp_rings, STEEL,
-                                    sharp_angle=60), lod, 0.0006))
-    if lod["detail"]:
-        c = _ring_centre(r0) + back * t
-        up = (Vector(L.P3(*pairs[0][0])) - Vector(L.P3(*pairs[0][1]))).normalized()
-        up = (up - back * up.dot(back)).normalized()
-        xa = Vector((1, 0, 0))
-        h = (Vector(L.P3(*pairs[0][0])) - Vector(L.P3(*pairs[0][1]))).length / 2
-        hw = tables.interp(L.HW_STOCK, ut0) - 0.0035
-        polys = []
-        for k in range(L.BUTTPLATE_RIBS):
-            s = -0.78 + 1.56 * k / (L.BUTTPLATE_RIBS - 1)
-            if abs(s - L.TRAPDOOR_AT) < 0.30:                  # ribs stop around the trapdoor
-                continue
-            o = c + up * (s * h)
-            # local plate half width at this height (the butt ring is rounded top and bottom)
-            band = [abs(p.x) for p in r0 if abs((p - _ring_centre(r0)).dot(up) - s * h) < 0.004]
-            w = min(hw, (max(band) if band else hw) - 0.003)
-            if w < 0.006:
-                continue
-            q = [o + xa * w + up * 0.001, o - xa * w + up * 0.001, o - xa * w - up * 0.001,
-                 o + xa * w - up * 0.001]
-            polys.append((q, [p + back * 0.0008 for p in q]))
-        out.append(mesh.extrude_polys("WOOD_ButtPlate_Ribs", lod["C_DETAIL"], polys, STEEL))
-        td = c + up * (L.TRAPDOOR_AT * h)
-        out.append(mesh.cyl("WOOD_ButtPlate_Trapdoor", lod["C_DETAIL"], td, td + back * 0.0007,
-                            L.TRAPDOOR_R, 24, STEEL))
-        hinge = td + up * (L.TRAPDOOR_R + 0.0012)
-        out.append(mesh.cyl("WOOD_ButtPlate_TrapdoorHinge", lod["C_DETAIL"], hinge - xa * 0.006,
-                            hinge + xa * 0.006, 0.0011, 10, STEEL))
-        specs = []
-        for s in (0.86, -0.86):
-            p = c + up * (s * h)
-            specs.append((p, p + back * 0.0009, 0.0033))
-        out.append(mesh.multi_cyl("FASTENER_ButtPlateScrews", lod["C_DETAIL"], specs, 12, STEEL))
-        # sling swivel: oval base on the belly + swinging loop
-        sp = [L.P3(*p) for p in L.SWIVEL_BASE]
-        out.append(mesh.tube("CTRL_SlingSwivel_Base", lod["C_DETAIL"], sp, 0.0028, 10, STEEL, smooth_path=False))
-        loop = [Vector(L.P3(*p)) for p in L.SWIVEL_LOOP]
-        pts = [loop[0] + Vector((-0.009, 0, 0)), loop[1] + Vector((-0.009, 0, 0)), loop[2] + Vector((-0.006, 0, 0)),
-               loop[2] + Vector((0.006, 0, 0)), loop[1] + Vector((0.009, 0, 0)), loop[0] + Vector((0.009, 0, 0))]
-        out.append(mesh.tube("CTRL_SlingSwivel_Loop", lod["C_DETAIL"], pts, 0.0015, 8, STEEL, samples=3))
+    axis = (S.ring_centre(rings[1]) - S.ring_centre(r0)).normalized()        # points forward (-Y)
+    back, t = -axis, L.BUTTPLATE_T
+    bp = [S.inflate(r0, 0.0006, axis * L.BUTTPLATE_WRAP), S.inflate(r0, 0.0009),
+          S.inflate(r0, 0.0009, back * t * 0.6), S.inflate(r0, 0.0002, back * t)]
+    out.append(hard(mesh.loft_rings(nm(P, "WOOD_ButtPlate"), C, bp, STEEL, sharp_angle=60), P, 0.0006))
+    if P["detail"]:
+        top_pt, bot_pt = Vector(L.P3(*pairs[0][0])), Vector(L.P3(*pairs[0][1]))
+        out += _buttplate_details(P, r0, back, top_pt, bot_pt) + _sling_swivel(P)
     return out
 
 
-def grip(lod):
-    # outline without sub-2 px wiggles: the 6.5 mm bevel collapses short edges into 0-area faces (U05)
-    poly = silhouette.simplify(L.GRIP + [L.GRIP[0]], 1.0)[:-1]
-    ob = plate(nm(lod, "GRIP_Pistol"), lod["C_PRIMARY"], poly, L.HW_GRIP, POLY)
-    if lod["bevel"]:
-        mods.bevel(ob, 0.0065, 4, angle=30)
-        mods.weighted_normal(ob)
-    return [ob]
+def _buttplate_details(P, r0, back, top_pt, bot_pt):
+    """Back face of the buttplate: horizontal grip ribs, cleaning-kit trapdoor + hinge, 2 screws."""
+    C = P["coll"]
+    centre = S.ring_centre(r0)
+    c = centre + back * L.BUTTPLATE_T                      # centre of the plate's back face
+    xa = Vector((1, 0, 0))
+    up = (top_pt - bot_pt).normalized()                    # in the (slanted) butt plane
+    back = xa.cross(up) * (1 if xa.cross(up).dot(back) > 0 else -1)     # face normal, pointing rearwards
+    h = (top_pt - bot_pt).length / 2
+    hw = tables.interp(L.HW_STOCK, L.STOCK_BUTT_U[0]) - 0.0035
+    polys = []
+    for k in range(L.BUTTPLATE_RIBS):
+        s = -0.78 + 1.56 * k / (L.BUTTPLATE_RIBS - 1)
+        if abs(s - L.TRAPDOOR_AT) < 0.30:                  # ribs stop around the trapdoor
+            continue
+        o = c + up * (s * h)
+        # local plate half width at this height (the butt ring is rounded top and bottom)
+        band = [abs(p.x) for p in r0 if abs((p - centre).dot(up) - s * h) < 0.004]
+        w = min(hw, (max(band) if band else hw) - 0.003)
+        if w < 0.006:
+            continue
+        q = [o + xa * w + up * 0.001, o - xa * w + up * 0.001, o - xa * w - up * 0.001, o + xa * w - up * 0.001]
+        polys.append((q, [p + back * 0.0008 for p in q]))
+    out = [mesh.extrude_polys(nm(P, "WOOD_ButtPlate_Ribs"), C, polys, STEEL)]
+    td = c + up * (L.TRAPDOOR_AT * h)
+    out.append(mesh.cyl(nm(P, "WOOD_ButtPlate_Trapdoor"), C, td, td + back * 0.0007, L.TRAPDOOR_R, 24, STEEL))
+    hinge = td + up * (L.TRAPDOOR_R + 0.0012)
+    out.append(mesh.cyl(nm(P, "WOOD_ButtPlate_TrapdoorHinge"), C, hinge - xa * 0.006, hinge + xa * 0.006,
+                        0.0011, 10, STEEL))
+    screws = [(c + up * (s * h), c + up * (s * h) + back * 0.0009, 0.0033) for s in (0.86, -0.86)]
+    out.append(mesh.multi_cyl(nm(P, "FASTENER_ButtPlateScrews"), C, screws, 12, STEEL))
+    return out
 
 
-# ============================================================================ magazine (v2)
+def _sling_swivel(P):
+    """Oval base on the belly + swinging loop."""
+    C = P["coll"]
+    base = [L.P3(*p) for p in L.SWIVEL_BASE]
+    out = [mesh.tube(nm(P, "CTRL_SlingSwivel_Base"), C, base, 0.0028, 10, STEEL, smooth_path=False)]
+    a, b, c = (Vector(L.P3(*p)) for p in L.SWIVEL_LOOP)
+    wide, narrow = Vector((0.009, 0, 0)), Vector((0.006, 0, 0))
+    loop = [a - wide, b - wide, c - narrow, c + narrow, b + wide, a + wide]
+    out.append(mesh.tube(nm(P, "CTRL_SlingSwivel_Loop"), C, loop, 0.0015, 8, STEEL, samples=3))
+    return out
+
+
+def grip(P):
+    """Polymer pistol grip: rounded sections lofted between the measured back strap and front edge
+    (stations slide along both edges, so the last one lies on the slanted bottom)."""
+    n = max(8, P["stations"] // 2 + 4)
+    back, front = S.arc_sample(L.GRIP_BACK, n), S.arc_sample(L.GRIP_FRONT, n)
+    hws = [tables.interp(L.HW_GRIP_T, i / (n - 1)) for i in range(n)]
+    # oblique view: both long edges of the silhouette overhang the mid-plane section (rounded: x0.7)
+    pairs = []
+    for a, b, hw in zip(back, front, hws):
+        d = 0.7 * L.REF.thickness_px((a.x + b.x) / 2, hw)
+        pairs.append(((a.x + d, a.y), (b.x - d, b.y)))
+    return [S.loft_pairs(nm(P, "GRIP_Pistol"), P["coll"], pairs, hws, P["ring"], POLY,
+                         e_a=L.GRIP_E_BACK, e_b=L.GRIP_E_FRONT, sharp_angle=60)]
+
+
+# ============================================================================ magazine
 def _mag_frame():
     """AKM 30-rd ribbed steel magazine. The spine (rear edge) and the front edge are circular arcs
-    fitted to the photo (rear r=397 px, front r=297 px, max residual 2.5 px). The top section is
-    radial (spine -> rear-arc centre, depth ~62.6 mm, spec ~64 mm); the bottom section lies on the
-    measured floorplate line. Rear and front points slide along their own arcs in between.
-    Returns section(s) -> (rear_px, front_px) with s = 0 top, 1 = body bottom, and s of the
-    floorplate outer face."""
-    rcx, rcy, rr = L.MAG_REAR_ARC
-    fcx, fcy, fr = L.MAG_FRONT_ARC
+    least-squares fitted to the measured photo edges. The top section is radial (spine -> rear-arc
+    centre); the bottom section lies on the measured floorplate line; rear and front points slide
+    along their own arcs in between.
+    Returns (section, s_out): section(s) -> (rear_px, front_px) with s = 0 top, 1 = body bottom,
+    s_out = the floorplate outer face."""
+    # oblique view: the spine / front silhouettes overhang the mid-plane section by d px
+    d = L.REF.thickness_px(L.MAG_PIVOT_PX[0], L.HW_MAG)
+    rcx, rcy, rr = L.MAG_REAR_ARC[0] + d, L.MAG_REAR_ARC[1], L.MAG_REAR_ARC[2]
+    fcx, fcy, fr = L.MAG_FRONT_ARC[0] - d * L.MAG_FRONT_TAPER, L.MAG_FRONT_ARC[1], L.MAG_FRONT_ARC[2]
     Cr, Cf = Vector((rcx, rcy)), Vector((fcx, fcy))
     a, b = Vector(L.MAG_FLOOR_LINE[0]), Vector(L.MAG_FLOOR_LINE[1])
     inward = Vector((-(b - a).y, (b - a).x)).normalized()
@@ -423,7 +262,8 @@ def _mag_frame():
         inward = -inward
 
     def hit(C, r, inset, near):
-        p0, d = a + inward * inset, b - a           # line shifted inside by `inset` px
+        """floor line (shifted inside by `inset` px) x circle; the root nearest to `near`."""
+        p0, d = a + inward * inset, b - a
         w = p0 - C
         A, B, Cc = d.dot(d), 2 * w.dot(d), w.dot(w) - r * r
         q = math.sqrt(max(0.0, B * B - 4 * A * Cc))
@@ -446,105 +286,102 @@ def _mag_frame():
         t_r, t_f = tr0 + (tr1 - tr0) * s, tf0 + (tf1 - tf0) * s
         return (Cr + rr * Vector((math.cos(t_r), math.sin(t_r))),
                 Cf + fr * Vector((math.cos(t_f), math.sin(t_f))))
-    s_out = (ang(Cr, Ro) - tr0) / (tr1 - tr0)
-    return section, 0.0, 1.0, s_out
+    return section, (ang(Cr, Ro) - tr0) / (tr1 - tr0)
 
 
-def magazine(lod):
-    C, D = lod["C_PRIMARY"], lod["C_DETAIL"]
-    n = lod["mag_st"]
-    rn = max(14, lod["ring"])
-    section, th0, th1, th_fp = _mag_frame()
-    ths = [th0 + (th1 - th0) * i / (n - 1) for i in range(n)]
-    secs = [section(t) for t in ths]
+def magazine(P):
+    C = P["coll"]
+    n, rn = P["mag_st"], max(14, P["ring"])
+    section, s_out = _mag_frame()
+    secs = [section(i / (n - 1)) for i in range(n)]
     pairs = [(tuple(R), tuple(F)) for R, F in secs]
-    out = [loft_pairs(nm(lod, "MAG_Body"), C, pairs, [L.HW_MAG] * n, rn, STEEL,
-                      e_a=L.MAG_E_SPINE, e_b=L.MAG_E_FRONT, sharp_angle=55)]
-    # floorplate: slides on the body rails, 1.2 mm proud all round, front lip overhangs
-    R0, F0 = section(th1 - 0.012)
-    R1, F1 = section(th_fp)
+    out = [S.loft_pairs(nm(P, "MAG_Body"), C, pairs, [L.HW_MAG] * n, rn, STEEL,
+                        e_a=L.MAG_E_SPINE, e_b=L.MAG_E_FRONT, taper=L.MAG_FRONT_TAPER, sharp_angle=55)]
+    # floorplate: slides on the body rails, 0.8 mm proud all round, lips front and rear
+    R0, F0 = section(1.0 - 0.012)
+    R1, F1 = section(s_out)
     fwd0, fwd1 = (F0 - R0).normalized(), (F1 - R1).normalized()
     fp_pairs = [(tuple(R0 - fwd0 * 1.0), tuple(F0 + fwd0 * 1.5)), (tuple(R1 - fwd1 * 1.0), tuple(F1 + fwd1 * 1.5))]
-    fp = loft_pairs(nm(lod, "MAG_Floorplate"), lod["C_SECONDARY"], fp_pairs, [L.HW_MAG] * 2, rn, STEEL,
-                    e_a=L.MAG_E_SPINE, e_b=4.0, grow=0.0008, sharp_angle=40)
-    out.append(hard(fp, lod, 0.0006))
+    out.append(hard(S.loft_pairs(nm(P, "MAG_Floorplate"), C, fp_pairs, [L.HW_MAG] * 2, rn, STEEL,
+                                 e_a=L.MAG_E_SPINE, e_b=4.0, grow=0.0008, taper=L.MAG_FRONT_TAPER, sharp_angle=40), P, 0.0004))
     # lip reinforcement plates (welded, both sides, top of the body)
     m_lip = max(2, int(n * L.MAG_LIP_FRAC))
     lp = [(tuple(R.lerp(F, 0.04)), tuple(F.lerp(R, 0.04))) for R, F in secs[:m_lip + 1]]
-    out.append(loft_pairs(nm(lod, "MAG_LipPlates"), lod["C_SECONDARY"], lp, [L.HW_MAG + 0.0007] * len(lp), rn,
-                          STEEL, e_a=8.0, e_b=8.0, sharp_angle=40))
+    out.append(S.loft_pairs(nm(P, "MAG_LipPlates"), C, lp, [L.HW_MAG + 0.0007] * len(lp), rn, STEEL,
+                            e_a=8.0, e_b=8.0, taper=L.MAG_FRONT_TAPER, sharp_angle=40))
     # locking lugs: front lug (hooks into the receiver) and rear catch lug (under the mag catch)
     Rt, Ft = secs[0]
-    Rl, Fl = section(th0 + (th1 - th0) * 0.07)
+    Rl, _ = section(0.07)
     fwd, dn = (Ft - Rt).normalized(), (Rl - Rt).normalized()
-    fl = [Ft + dn * 2, Ft + fwd * 5 + dn * 3, Ft + fwd * 5 + dn * 11, Ft + dn * 13]
-    # rear catch lug: 2 px proud of the spine (v3 spine is measured; 6 px ran into the mag catch)
-    # 2 px deep, back face >= 1 px clear of the mag catch (a thinner lug collapses under the bevel: U05)
+    front_lug = [Ft + dn * 2, Ft + fwd * 5 + dn * 3, Ft + fwd * 5 + dn * 11, Ft + dn * 13]
+    # rear catch lug: 2 px deep, back face >= 1 px clear of the mag catch
+    # (a thinner lug collapses under the bevel: U05)
     back = max(0.0, min(2.0, Rl.x - max(p[0] for p in L.MAG_CATCH) - 1.0))
     bf, ff = Rl - fwd * back, Rl - fwd * back + fwd * 2.0
-    rl = [ff + dn * 3, bf + dn * 3, bf + dn * 12, ff + dn * 12]
-    for nme, poly, hw in (("MAG_LugFront", fl, 0.0045), ("MAG_LugRear", rl, 0.0070)):
-        out.append(hard(plate(nm(lod, nme), lod["C_SECONDARY"], [tuple(p) for p in poly], hw, STEEL),
-                        lod, 0.0005))
-    if lod["detail"]:
-        paths = []
-
-        def rib_pt(t, f, side):
-            R, F = section(t)
-            p = R.lerp(F, f)
-            y, z = L.P(p.x, p.y)
-            return Vector((side * (L.HW_MAG - L.MAG_RIB_SINK), y, z))
-        for (f, t0, t1) in L.MAG_LONG_RIBS:                          # 3 outward longitudinal ribs
-            k = max(4, int((t1 - t0) * n))
-            for side in (-1, 1):
-                paths.append([rib_pt(t0 + (t1 - t0) * i / k, f, side) for i in range(k + 1)])
-        for (t, f0, f1) in L.MAG_SHORT_RIBS:                         # short ribs parallel to the floor
-            for side in (-1, 1):
-                paths.append([rib_pt(t, f0 + (f1 - f0) * i / 4, side) for i in range(5)])
-        out.append(tubes("MAG_Ribs", D, paths, L.MAG_RIB_R, 8, STEEL, samples=1, taper=True))
+    rear_lug = [ff + dn * 3, bf + dn * 3, bf + dn * 12, ff + dn * 12]
+    for name, poly, hw in (("MAG_LugFront", front_lug, 0.0045), ("MAG_LugRear", rear_lug, 0.0070)):
+        out.append(hard(plate(nm(P, name), C, [tuple(p) for p in poly], hw, STEEL), P, 0.0005))
+    if P["detail"]:
+        out.append(_mag_ribs(P, section, n))
     return out
 
 
-def controls(lod):
-    C = lod["C_MECH"]
-    out = []
+def _mag_ribs(P, section, n):
+    """Stamped ribs on both sides: 3 long ribs along the curve + 2 short ones parallel to the floor."""
+    def pt(t, f, side):
+        R, F = section(t)
+        y, z = L.P(*R.lerp(F, f))
+        hw = L.HW_MAG * (1.0 - (1.0 - L.MAG_FRONT_TAPER) * f)          # the body narrows towards the front
+        return Vector((side * (hw - L.MAG_RIB_SINK), y, z))
+    paths = []
+    for (f, t0, t1) in L.MAG_LONG_RIBS:
+        k = max(4, int((t1 - t0) * n))
+        paths += [[pt(t0 + (t1 - t0) * i / k, f, side) for i in range(k + 1)] for side in (-1, 1)]
+    for (t, f0, f1) in L.MAG_SHORT_RIBS:
+        paths += [[pt(t, f0 + (f1 - f0) * i / 4, side) for i in range(5)] for side in (-1, 1)]
+    return S.beads(nm(P, "MAG_Ribs"), P["coll"], paths, L.MAG_RIB_R, 8, STEEL)
+
+
+# ============================================================================ controls + fasteners
+def controls(P):
+    C = P["coll"]
     xr = -L.HW_RECV
-    out.append(hard(plate(nm(lod, "CTRL_Guard"), C, L.TRIGGER_GUARD, L.HW_GUARD, STEEL), lod, 0.0006))
-    out.append(hard(plate(nm(lod, "CTRL_Trigger_Blade"), C, L.TRIGGER, L.HW_TRIGGER, STEEL), lod, 0.0008))
-    out.append(hard(plate(nm(lod, "CTRL_MagCatch"), C, L.MAG_CATCH, L.HW_CATCH, STEEL), lod, 0.0008))
-    lever = plate(nm(lod, "CTRL_Safety_Lever"), C, L.SAFETY_LEVER, 0, STEEL, x0=xr - 0.0028, x1=xr - 0.0007)
-    out.append(hard(lever, lod, 0.0006))
+    out = [hard(plate(nm(P, "CTRL_Guard"), C, L.TRIGGER_GUARD, L.HW_GUARD, STEEL), P, 0.0006),
+           hard(plate(nm(P, "CTRL_Trigger_Blade"), C, L.TRIGGER, L.HW_TRIGGER, STEEL), P, 0.0008),
+           hard(plate(nm(P, "CTRL_MagCatch"), C, L.MAG_CATCH, L.HW_CATCH, STEEL), P, 0.0008),
+           hard(plate(nm(P, "CTRL_Safety_Lever"), C, L.SAFETY_LEVER, 0, STEEL, x0=xr - 0.0028, x1=xr - 0.0007),
+                P, 0.0006)]
     y, z = L.P(*L.SAFETY_PIVOT_PX)
-    out.append(mesh.cyl(nm(lod, "CTRL_Safety_Pivot"), C, (xr, y, z), (xr - 0.0032, y, z),
-                        L.m(L.SAFETY_PIVOT_R_PX), lod["lathe"], STEEL))
+    out.append(mesh.cyl(nm(P, "CTRL_Safety_Pivot"), C, (xr, y, z), (xr - 0.0032, y, z),
+                        L.m(L.SAFETY_PIVOT_R_PX, L.SAFETY_PIVOT_PX[0]), P["lathe"], STEEL))
     # bolt carrier seen through the ejection port + charging handle
-    car = plate(nm(lod, "CTRL_Charging_Carrier"), C, L.EJECTION_PORT, 0, BRIGHT, x0=xr - 0.0003, x1=0.0)
-    out.append(hard(car, lod, 0.0008))
+    out.append(hard(plate(nm(P, "CTRL_Charging_Carrier"), C, L.EJECTION_PORT, 0, BRIGHT, x0=xr - 0.0003, x1=0.0),
+                    P, 0.0008))
     y, z = L.P(*L.CHARGING_KNOB_PX)
-    prof = [(0.0033, xr), (0.0033, -0.033), (0.0046, -0.0355), (0.0050, -0.041), (0.0042, -0.0455),
-            (0.0018, -0.0472)]
-    out.append(mesh.lathe(nm(lod, "CTRL_Charging_Handle"), C, (0, y, z), [(r, x) for r, x in prof],
-                          lod["lathe"], BRIGHT, closed=False, axis="X", sharp_angle=50))
+    out.append(mesh.lathe(nm(P, "CTRL_Charging_Handle"), C, (0, y, z), L.CHARGING_HANDLE, P["lathe"], BRIGHT,
+                          closed=False, axis="X", sharp_angle=50))
     return out
 
 
-def details(lod):
-    """HIGH-only small parts: rivets/pins (both sides), stock screw, sling swivel."""
-    if not lod["detail"]:
+def details(P):
+    """S3-only small parts: rivets / pins on both receiver walls, mag-catch pin, stock screw."""
+    if not P["detail"]:
         return []
-    C = lod["C_DETAIL"]
-    out = [domes("FASTENER_Rivets_R", C, L.RIVETS, -L.HW_RECV, 0.0023, 0.0010, 10, STEEL, -1.0),
-           domes("FASTENER_Rivets_L", C, L.RIVETS, L.HW_RECV, 0.0023, 0.0010, 10, STEEL, 1.0)]
+    C = P["coll"]
+    out = [S.domes(nm(P, "FASTENER_Rivets_" + tag), C, L.RIVETS, side * L.HW_RECV, L.RIVET_R, L.RIVET_H, 10,
+                   STEEL, float(side)) for side, tag in ((-1, "R"), (1, "L"))]
     y, z = L.P(*L.MAG_CATCH_PIN_PX)
-    out.append(mesh.cyl("FASTENER_MagCatchPin", C, (-L.HW_CATCH - 0.0006, y, z), (L.HW_CATCH + 0.0006, y, z),
-                        0.0017, 10, STEEL))
-    hw = tables.interp(L.HW_STOCK, 413)
-    out.append(domes("FASTENER_StockScrew", C, [(413, 295)], -hw + 0.0003, 0.0030, 0.0008, 12, STEEL, -1.0))
+    out.append(mesh.cyl(nm(P, "FASTENER_MagCatchPin"), C, (-L.HW_CATCH - 0.0006, y, z),
+                        (L.HW_CATCH + 0.0006, y, z), 0.0017, 10, STEEL))
+    hw = tables.interp(L.HW_STOCK, L.STOCK_SCREW_PX[0])
+    out.append(S.domes(nm(P, "FASTENER_StockScrew"), C, [L.STOCK_SCREW_PX], -hw + 0.0003, 0.0030, 0.0008, 12,
+                       STEEL, -1.0))
     return out
 
 
 # ============================================================================ Stage 1 primitives
 # Same landmarks, crude shapes: outlines simplified to their main corners, round parts as 8-gons.
+# Loft parts become plates of their mean half width.
 def receiver_prim(P):
     C = P["coll"]
     return [prim.box_px(nm(P, "RECV_Body"), C, L.RECV_BODY, L.HW_RECV, STEEL),
@@ -556,19 +393,20 @@ def receiver_prim(P):
 def barrel_prim(P):
     C, s = P["coll"], P["lathe"]
     g, b = L.GAS_TUBE, L.BRAKE
-    return [prim.cyl_px(nm(P, "BARREL_Main"), C, (L.RECV_FRONT_U, L.BORE_V), (1395, L.BORE_V), L.m(12.5), s, STEEL),
-            prim.cyl_px(nm(P, "GAS_Tube"), C, (918, g["v"]), (g["u1"], g["v"]), L.m(g["r"]), s, STEEL),
+    return [prim.cyl_px(nm(P, "BARREL_Main"), C, (L.BARREL[0][0], L.BORE_V), (L.BARREL[-1][0], L.BORE_V),
+                        L.m(L.BARREL[1][1], L.BARREL[1][0]), s, STEEL),
+            prim.cyl_px(nm(P, "GAS_Tube"), C, (g["u0"], g["v"]), (g["u1"], g["v"]), L.m(g["r"], g["um"]), s, STEEL),
             prim.box_px(nm(P, "GAS_Block"), C, L.GAS_BLOCK, L.HW_GASBLOCK, STEEL),
             prim.plate_px(nm(P, "FSB_Body"), C, L.FSB, L.HW_FSB, STEEL, tol=4),
-            prim.cyl_px(nm(P, "MUZZLE_Brake"), C, (b["collar"][0], L.BORE_V), (b["bot_end"], L.BORE_V),
-                        L.m(b["r"]), s, STEEL)]
+            prim.cyl_px(nm(P, "MUZZLE_Brake"), C, (b["collar"][0], L.BORE_V), (b["front"][-1][1], L.BORE_V),
+                        L.m(b["r"], b["u0"]), s, STEEL)]
 
 
 def woodwork_prim(P):
     C = P["coll"]
     return [prim.plate_px(nm(P, "WOOD_HandguardLower"), C, L.HG_LOWER_TOP + L.HG_LOWER_BOT[::-1], 0.019, WOOD, tol=4),
             prim.plate_px(nm(P, "WOOD_HandguardUpper"), C, L.HG_UPPER_TOP + L.HG_UPPER_BOT[::-1], 0.0155, WOOD, tol=4),
-            prim.box_px(nm(P, "RECV_HandguardBand"), C, L.HG_FRONT_BAND, 0.0195, STEEL)]
+            prim.box_px(nm(P, "RECV_HandguardBand"), C, L.HG_FRONT_BAND, L.HW_HG_BAND, STEEL)]
 
 
 def buttstock_prim(P):
@@ -606,15 +444,22 @@ PARTS = [
 ]
 
 
+def after_build(stage, objs):
+    """S3 DETAIL gets the painted master-material instances (bake source of S4, render look)."""
+    if stage == 3:
+        import paint
+        paint.apply(objs)
+
+
 def guide_points():
     return {"GUIDE_Bore_Trigger": (0, 0, 0), "GUIDE_Muzzle": L.P3(L.MUZZLE_U, L.BORE_V),
-            "GUIDE_ButtHeel": L.P3(L.BUTT_U, 437), "GUIDE_FrontSightPost": L.P3(1369, 219)}
+            "GUIDE_ButtHeel": L.P3(L.BUTT_U, L.STOCK_BOT[0][1]), "GUIDE_FrontSightPost": L.P3(*L.FSB_POST[1])}
 
 
 # moving parts for game animation: origin on the joint (world point), keyed by base name
 PIVOTS = {
-    "MAG_Body": lambda: L.P3(778, 331),                    # rocks in around the front locking lug
-    "CTRL_Trigger_Blade": lambda: L.P3(574, 332),
+    "MAG_Body": lambda: L.P3(*L.MAG_PIVOT_PX),
+    "CTRL_Trigger_Blade": lambda: L.P3(*L.TRIGGER_PIVOT_PX),
     "CTRL_Safety_Lever": lambda: L.P3(*L.SAFETY_PIVOT_PX, x=-L.HW_RECV),
     "CTRL_MagCatch": lambda: L.P3(*L.MAG_CATCH_PIN_PX),
     "CTRL_Charging_Handle": lambda: L.P3(*L.CHARGING_KNOB_PX, x=-L.HW_RECV),
