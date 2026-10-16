@@ -29,8 +29,8 @@ PARTS = [Part("magazine", magazine, prim=magazine_prim, collision="hull"), ...] 
    the glTF exporter writes baseColor, metallicRoughness, occlusion and normal textures.
 6. **Merge / hierarchy** — static parts → `<A>_Body_LOD0`; moving parts stay separate, parented
    by `CHILDREN`, everything under the asset root empty.
-7. **LOD1-2** — collapse decimation of each LOD0 object (`game.lod_copy`); tiny movers dropped at
-   the last LOD.
+7. **LOD1-2** — collapse decimation of each LOD0 object (`game.lod_copy`); duplicate/invalid faces
+   are validated and removed before export; tiny movers are dropped at the last LOD.
 8. **Collision** — one convex hull (or box) per Part group from the S2 meshes, ≤ 250 faces,
    named for the engine (below), collection `41_S4_COLLISION`, exported with LOD0 only.
 9. **Exports** — `glb/<A>_LOD0|1|2.glb` (+ `fbx/<A>_LOD0.fbx` for unreal), textures in
@@ -69,4 +69,3 @@ meshes, one atlas per texture set, bakes routed through the master group, GLB + 
 `StandardMaterial3D` `.tres`, convex `-convcolonly` hull, re-import check. Examples:
 `projects/VEH_Gemini_Motorcycle/finish_*.py`, `projects/VEH_TT92_Racing_Car/stage5_paint.py` / `stage7_game.py`.
 Engine test: `GODOTTESTING/testingarea` (Godot 4.7.2, headless `--import`, screenshot mode `-- --shot file.png`).
-

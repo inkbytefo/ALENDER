@@ -77,7 +77,13 @@ BUDGET_OF = {"vehicle": "hero_vehicle", "architecture": "building", "character":
 
 def cmd_new(a):
     src = os.path.join(ROOT, "templates", "project")
-    dst = os.path.join(ROOT, "projects", a.asset)
+    ws = getattr(a, "workspace", None)
+    if ws:
+        dst = os.path.join(ROOT, "projects", ws, a.asset)
+    elif os.path.isdir(os.path.join(ROOT, "projects", "raw")):
+        dst = os.path.join(ROOT, "projects", "raw", a.asset)
+    else:
+        dst = os.path.join(ROOT, "projects", a.asset)
     if os.path.exists(dst):
         sys.exit(f"exists: {dst}")
     shutil.copytree(src, dst)
@@ -87,12 +93,22 @@ def cmd_new(a):
             t = t.replace("__BUDGET__", a.budget or BUDGET_OF.get(a.category, "large_prop"))
             open(p, "w", encoding="utf-8").write(t)
     os.makedirs(os.path.join(dst, "ref"), exist_ok=True)
-    print(f"[wb] created projects/{a.asset}/  -> put photos in ref/, fill project.md, measure landmarks.py")
+    rel_dst = os.path.relpath(dst, ROOT)
+    print(f"[wb] created {rel_dst}/  -> put photos in ref/, fill project.md, measure landmarks.py")
 
 
 def cmd_list(a):
+    found = []
+    for ws in ("raw", "gameready"):
+        ws_dir = os.path.join(ROOT, "projects", ws)
+        if os.path.isdir(ws_dir):
+            for d in sorted(glob.glob(os.path.join(ws_dir, "*", ""))):
+                found.append((f"{ws}/{os.path.basename(os.path.dirname(d))}", d))
     for d in sorted(glob.glob(os.path.join(ROOT, "projects", "*", ""))):
         name = os.path.basename(os.path.dirname(d))
+        if name not in ("raw", "gameready"):
+            found.append((name, d))
+    for name, d in found:
         rep = os.path.join(d, "report.json")
         res = "-"
         if os.path.isfile(rep):
@@ -117,7 +133,8 @@ def cmd_doctor(a):
 
 
 def _landmarks(asset):
-    pdir = os.path.join(ROOT, "projects", asset)
+    from workbench import paths
+    pdir = paths.project_dir(asset)
     sys.path.insert(0, pdir)
     import landmarks
     return pdir, landmarks
@@ -242,13 +259,15 @@ def cmd_regress(a):
     if not assets:
         sys.exit("[regress] no baseline yet: python wb.py regress <ASSET ...> --update")
     fails, now = [], {}
+    from workbench import paths
     for asset in assets:
+        pdir = paths.project_dir(asset)
         if not a.no_build:
             print(f"[regress] building {asset} ...", flush=True)
-            if run_script(os.path.join(ROOT, "projects", asset, "build.py"), ["--force"]) != 0:
+            if run_script(os.path.join(pdir, "build.py"), ["--force"]) != 0:
                 fails.append(f"{asset}: build crashed")
                 continue
-        rep = json.load(open(os.path.join(ROOT, "projects", asset, "report.json"), encoding="utf-8"))
+        rep = json.load(open(os.path.join(pdir, "report.json"), encoding="utf-8"))
         now[asset] = _flat_metrics(rep)
         if asset in base and not a.update:
             for k in sorted(set(base[asset]) | set(now[asset])):
@@ -270,6 +289,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sp = ap.add_subparsers(dest="cmd", required=True)
     p = sp.add_parser("new"); p.add_argument("asset"); p.add_argument("--category", default="prop")
+    p.add_argument("--workspace", default="raw", choices=("raw", "gameready", ""), help="workspace subfolder under projects/")
     p.add_argument("--budget", help="key of workbench.tables.BUDGETS (default from --category)")
     p = sp.add_parser("build"); p.add_argument("asset"); p.add_argument("rest", nargs=argparse.REMAINDER)
     p = sp.add_parser("gate"); p.add_argument("asset"); p.add_argument("stage", nargs="?", type=int)
@@ -304,11 +324,12 @@ def main():
     if a.cmd == "new":
         cmd_new(a)
     elif a.cmd == "build":
-        from workbench import gate
+        from workbench import gate, paths
+        pdir = paths.project_dir(a.asset)
         rest = [x for x in a.rest if x != "--"]
         if rest and not gate.is_pipeline(a.asset):
             print("[wb] note: legacy project (stage1.py/stage2.py) - stage flags are ignored")
-        rc = run_script(os.path.join(ROOT, "projects", a.asset, "build.py"), rest)
+        rc = run_script(os.path.join(pdir, "build.py"), rest)
         if rc == 0 and gate.is_pipeline(a.asset):
             gate.print_rows(a.asset, gate.evaluate(a.asset))
         sys.exit(rc)
@@ -385,7 +406,8 @@ def main():
         elif a.cmd == "sheet":
             print(T.sheet(a.imgs, a.out, a.cols))
         elif a.cmd == "compare":
-            pdir = os.path.join(ROOT, "projects", a.asset)
+            from workbench import paths
+            pdir = paths.project_dir(a.asset)
             ref = a.ref or os.path.join(pdir, "ref", "REAL_REFERENCE.png")
             sys.path.insert(0, pdir)
             marks = []

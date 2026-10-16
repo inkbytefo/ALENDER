@@ -22,6 +22,7 @@ documents below only when a step points to them.
 | `11_ASSETS_AND_PBR.md` | PBR texture sets in palettes, importing / fitting downloaded models |
 | `10_PRESENTATION.md` | S5 studio renders, turntable |
 | `case_studies/VEH_Gemini_Motorcycle.md` | a complete (legacy two-stage) project with real numbers |
+| `case_studies/COLT_1911_3D_RECONSTRUCTION.md` | complete reference-to-code reverse-engineering project (S1-S4 PASS) |
 | `projects/PROP_AK_Rifle` | the reference implementation of the staged pipeline (S1–S4 PASS) |
 
 ## Prompts for the user (and for image / coding AIs)

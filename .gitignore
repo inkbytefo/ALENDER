@@ -24,4 +24,5 @@ GodotTestingArea/
 # Intermediate / scratch binaries and scripts
 *.mixar
 check_nb.py
-
+
+/AssetMıgratıonFromPublictoUS

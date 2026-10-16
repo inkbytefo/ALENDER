@@ -89,6 +89,10 @@ def lod_copy(ob, ratio, name, coll):
     scene.coll(coll).objects.link(new)
     if ratio < 0.999:
         assets.decimate(new, max(4, int(tris(ob) * ratio)), weld_rel=0)
+        if new.data.validate(clean_customdata=False):
+            new.data.update()
+            if new.data.validate(clean_customdata=False):
+                raise RuntimeError(f"LOD decimation left invalid mesh data: {name}")
     return new
 
 

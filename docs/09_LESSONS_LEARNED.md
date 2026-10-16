@@ -8,11 +8,11 @@ A lesson should end as CODE or CHECK whenever possible (docs/05, workbench/).
 
 | Category | Lessons | Read when |
 |----------|---------|-----------|
-| Reference & measurement | 2 3 4 5 6 15 20 30 31 32 33 34 35 51 52 | S0, any R01/R02 failure |
-| Geometry & topology | 7 8 10 11 12 18 19 24 37 38 50 | S1-S3 builders |
+| Reference & measurement | 2 3 4 5 6 15 20 30 31 32 33 34 35 51 52 56 | S0, any R01/R02 failure |
+| Geometry & topology | 7 8 10 11 12 18 19 24 37 38 50 53 55 57 58 59 60 | S1-S3 builders |
 | Validation & process | 1 9 14 16 26 39 | always skim |
 | Rendering & presentation | 13 21 22 27 | review renders, S5 |
-| Assets, materials, game | 23 25 28 29 36 40 | PBR, imports, S4 |
+| Assets, materials, game | 23 25 28 29 36 40 54 | PBR, imports, S4 |
 
 ---
 
@@ -277,3 +277,71 @@ export - fold part of it into the baked roughness and say so.
     → *Rule: inspect silhouette diff columns with a 5-line numpy slice probe to locate internal
     voids vs outer boundary discrepancies before adjusting builder geometry.*
     **[JUDGEMENT]**
+
+53. **Co-incident abutting prisms trigger non-manifold edges in remove_doubles.** Segmented structural rails
+    (e.g. framing split around forklift pockets) placed with exact shared boundary planes merge into internal
+    faces sharing 3-4 linked faces during `mesh.finish()`.
+    → *Rule: maintain a minimal 1mm geometric clearance ($0.001\text{ m}$) or continuous profile extrusions across
+    modular framing cutouts, and offset internal recessed apertures by half-thickness so bbox extrema ($Z=0$,
+    $Z=\text{height}$) remain strictly defined by corner castings.*
+    **[JUDGEMENT / CODE: projects/PROP_Shipping_Container/parts.py]**
+
+54. **Collapse-decimated multi-part game meshes retained duplicate faces.** The GLB exporter warned that
+    LOD1/LOD2 meshes were invalid; `Mesh.validate()` removed duplicate triangles after export preparation.
+    → *Rule: validate and update each decimated LOD mesh before export, and keep an exporter-validity smoke
+    assertion.*
+    **[CODE: workbench/bl/game.py / CHECK: templates/smoke_test.py]**
+
+55. **Radial polygon capping on hexagonal blockouts triggers n-gon warnings.** Creating flat hexagonal
+    decks or concentric rings with default `bmesh.ops.create_circle(cap_ends=True)` leaves 6-gon or multi-gon
+    end caps that exceed the 5% threshold under gate check U12.
+    → *Rule: explicitly triangulate caps using `cap_tris=True` on cylindrical bmesh operators or fan-stitch perimeter
+    vertices to a central vertex `(0, 0, Z)`. For regular hexagons of circumradius $R$, outer bounds are
+    strictly $2R \times \sqrt{3}R$; define `TARGET_DIMS` to match the exact apothem/circumradius geometry
+    to ensure zero bounding box drift across S1-S3.*
+    **[JUDGEMENT / CODE: projects/PROP_Weapon_Spawner_Pad/parts.py]**
+
+56. **Hairline submesh seams in 3D-model reference masks spike boundary distances (d_rn > 100 px).**
+    When capturing `REF_MASK.png` from a multi-mesh 3D model reference (GLB/FBX), sub-millimeter gaps between
+    independent components (e.g. 0.1mm slide rail clearance) render as 1 px transparent fracture cracks.
+    In the boundary distance transform, these 1 px cracks create artificial internal holes that spike R02 p95
+    error to over 100 pixels.
+    → *Rule: after generating `REF_MASK.png` from multi-mesh assemblies, flood-fill or close internal micro-holes
+    (`area < 1000 px`) while strictly protecting genuine structural apertures (e.g. trigger guard voids > 30,000 px).
+    This immediately restores IoU to > 0.990 and p95 to ≤ 2.0 px.*
+    **[JUDGEMENT / CODE: projects/PROP_Colt_1911/landmarks.py]**
+
+57. **Extruding bridged 2D silhouette polygons creates non-manifold zero-thickness internal seams.**
+    To rasterize silhouette loops (like trigger guards) in 2D (`landmarks.py`), a bridge cut line is used
+    to form a single continuous polygon. If this same bridged polygon is extruded in 3D (`parts.py`), coincident
+    edges form non-manifold geometry (`U04 FAIL`).
+    → *Rule: keep 2D silhouette landmarks continuous with bridge lines for rasterization, but construct the 3D
+    part as a solid volumetric extrusion and punch the aperture using a clean exact boolean cutter
+    (`mesh.boolean_diff`) followed by `mesh.dissolve_degenerate()` and `mesh.triangulate()`. This yields strictly
+    0 non-manifold edges and 0 degenerate faces.*
+    **[JUDGEMENT / CODE: projects/PROP_Colt_1911/parts.py]**
+
+58. **Dense coplanar boolean slots in S2 low-poly cause degenerate slivers (U16 FAIL).**
+    Carving fine physical grooves (e.g. 19 cocking serration slots) across beveled cylindrical slide hulls
+    at S2 introduces microscopic coplanar sliver faces and unconstrained triangles.
+    → *Rule: in S2 LOWPOLY, preserve clean continuous topology. Keep high-frequency groove arrays for S3 DETAIL
+    or bake them cleanly into normal maps (`T_normal.png`), ensuring S2 geometry is 100% free of degenerate
+    elements while matching the game silhouette.*
+    **[JUDGEMENT / CODE: projects/PROP_Colt_1911/parts.py]**
+
+59. **Low-poly firearm triangle budget balancing via controlled checkering subdivision.**
+    Compact handguns modeled strictly as low-poly planar prisms often fall below the game budget floor
+    (`U09: 4,000 - 15,000 tris`), landing around 2,000 tris.
+    → *Rule: apply structured quad subdivision (`bmesh.ops.subdivide_edges(cuts=18, use_grid_fill=True)`) to
+    high-frequency tactile surfaces (e.g. walnut grip panels) to generate clean diamond checkering topology.
+    This comfortably hits the budget sweet spot (4,128 tris) with 0.0% n-gons and zero topology defects.*
+    **[JUDGEMENT / CODE: projects/PROP_Colt_1911/parts.py]**
+
+60. **Strict anchor planes prevent multi-part bounding box drift.**
+    In complex multi-part props, arbitrary offsets in sub-components (barrel bushing 1mm forward, grip screws
+    0.5mm proud) cause cumulative bounding box drift against target dimensions.
+    → *Rule: clamp all sub-part builders strictly to landmark bounding planes (`p_front[1]`, `L.SLIDE_TOP_Z`,
+    `L.GRIP_HALF_WIDTH`, `z=0.0001`). Never guess end-caps beyond reference landmarks.*
+    **[JUDGEMENT / CODE: projects/PROP_Colt_1911/parts.py]**
+
+

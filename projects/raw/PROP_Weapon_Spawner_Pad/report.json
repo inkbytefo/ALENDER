@@ -1,0 +1,806 @@
+{
+  "asset": "PROP_Weapon_Spawner_Pad",
+  "pipeline": "stages-v1",
+  "stages": {
+    "1": {
+      "stage": "PRIMITIVE",
+      "summary": {
+        "result": "PASS",
+        "blockers_failed": 0,
+        "warnings": 0
+      },
+      "inputs_hash": "319d80c2f7eb",
+      "time": "2026-10-16 21:41:35",
+      "metrics": {
+        "objects": 5,
+        "tris": 364,
+        "dims": [
+          1.5,
+          1.299,
+          0.16
+        ],
+        "bbox_min": [
+          -0.75,
+          -0.6495,
+          0.0
+        ],
+        "top_tris": [
+          [
+            240,
+            "LENSES_Projector_PRIM"
+          ],
+          [
+            64,
+            "PROJECTOR_Hub_PRIM"
+          ],
+          [
+            24,
+            "DECK_Plates_PRIM"
+          ],
+          [
+            24,
+            "BASE_Platform_PRIM"
+          ],
+          [
+            12,
+            "EMISSIVE_HexStrip_PRIM"
+          ]
+        ],
+        "materials": [
+          "MAT_DECK_PLATE",
+          "MAT_EMISSIVE_CYAN",
+          "MAT_METAL_CHASSIS",
+          "MAT_OPTICAL_GLASS"
+        ],
+        "hygiene": {
+          "non_manifold": 0,
+          "boundary": 12,
+          "loose": 0,
+          "degenerate": 0,
+          "flipped": 0,
+          "inverted": 0,
+          "ngons": 0,
+          "quads": 94,
+          "tris": 176,
+          "faces": 270,
+          "ngon_ratio": 0.0
+        }
+      },
+      "checks": [
+        {
+          "id": "U01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "bbox 1.500 x 1.299 x 0.160 m vs target (1.5, 1.299, 0.16) (+-3%)"
+        },
+        {
+          "id": "U02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all scales 1.0"
+        },
+        {
+          "id": "U03",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "lowest z = 0.0000"
+        },
+        {
+          "id": "U07",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no empty material slots"
+        },
+        {
+          "id": "U08",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "364 tris (S1 max 800)"
+        },
+        {
+          "id": "U10",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "4 materials (max 4)"
+        },
+        {
+          "id": "U04",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "0 non-manifold edges ; 12 open edges"
+        },
+        {
+          "id": "U05",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "flipped 0, inverted 0 "
+        },
+        {
+          "id": "U16",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "0 degenerate faces/edges "
+        },
+        {
+          "id": "U11",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "0 loose verts/edges "
+        },
+        {
+          "id": "U12",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "n-gons 0/270 faces = 0.0% (max 5%)"
+        },
+        {
+          "id": "N01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all names GROUP_Part_PRIM"
+        },
+        {
+          "id": "H01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no subsurf on plates / boxes / extrusions"
+        },
+        {
+          "id": "X01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 critical intersections"
+        }
+      ]
+    },
+    "2": {
+      "stage": "LOWPOLY",
+      "summary": {
+        "result": "PASS",
+        "blockers_failed": 0,
+        "warnings": 0
+      },
+      "inputs_hash": "319d80c2f7eb",
+      "time": "2026-10-16 21:41:38",
+      "metrics": {
+        "objects": 5,
+        "tris": 2370,
+        "dims": [
+          1.5,
+          1.299,
+          0.16
+        ],
+        "bbox_min": [
+          -0.75,
+          -0.6495,
+          0.0
+        ],
+        "top_tris": [
+          [
+            1216,
+            "PROJECTOR_Hub_LP"
+          ],
+          [
+            704,
+            "LENSES_Projector_LP"
+          ],
+          [
+            258,
+            "BASE_Platform_LP"
+          ],
+          [
+            156,
+            "DECK_Plates_LP"
+          ],
+          [
+            36,
+            "EMISSIVE_HexStrip_LP"
+          ]
+        ],
+        "materials": [
+          "MAT_DECK_PLATE",
+          "MAT_EMISSIVE_CYAN",
+          "MAT_METAL_CHASSIS",
+          "MAT_OPTICAL_GLASS"
+        ],
+        "hygiene": {
+          "non_manifold": 0,
+          "boundary": 30,
+          "loose": 0,
+          "degenerate": 0,
+          "flipped": 0,
+          "inverted": 0,
+          "ngons": 0,
+          "quads": 702,
+          "tris": 966,
+          "faces": 1668,
+          "ngon_ratio": 0.0
+        },
+        "uv_overlap": {
+          "overlap": 0.0,
+          "outside": 0.0,
+          "coverage": 0.521
+        },
+        "texel": {
+          "min": 539.8,
+          "max": 561.5,
+          "spread": 1.04
+        },
+        "uv": {
+          "area3d_m2": 7.1966,
+          "atlas_coverage": 0.52,
+          "texel_px_per_m_at_2k": 550.5
+        }
+      },
+      "checks": [
+        {
+          "id": "U01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "bbox 1.500 x 1.299 x 0.160 m vs target (1.5, 1.299, 0.16) (+-2%)"
+        },
+        {
+          "id": "U02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all scales 1.0"
+        },
+        {
+          "id": "U03",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "lowest z = 0.0000"
+        },
+        {
+          "id": "U06",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all meshes have UVs"
+        },
+        {
+          "id": "U07",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no empty material slots"
+        },
+        {
+          "id": "U08",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "2370 tris (S2 max 12000)"
+        },
+        {
+          "id": "U09",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "2370 tris (LOD0 target 1500-8000)"
+        },
+        {
+          "id": "U10",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "4 materials (max 4)"
+        },
+        {
+          "id": "U04",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 non-manifold edges ; 30 open edges"
+        },
+        {
+          "id": "U05",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "flipped 0, inverted 0 "
+        },
+        {
+          "id": "U16",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 degenerate faces/edges "
+        },
+        {
+          "id": "U11",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 loose verts/edges "
+        },
+        {
+          "id": "U12",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "n-gons 0/1668 faces = 0.0% (max 5%)"
+        },
+        {
+          "id": "N01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all names GROUP_Part_LP"
+        },
+        {
+          "id": "H01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no subsurf on plates / boxes / extrusions"
+        },
+        {
+          "id": "X01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 critical intersections"
+        },
+        {
+          "id": "D02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "bbox change vs S1 on axes XY: 0.0% (max 4.0%)"
+        },
+        {
+          "id": "U13",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "UV_Bake: overlap 0.00%, outside 0-1 0.00%, coverage 52%"
+        },
+        {
+          "id": "U14",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "texel density 539.8-561.5 px/m at 2k (spread 1.04, max 2.5)"
+        }
+      ]
+    },
+    "3": {
+      "stage": "DETAIL",
+      "summary": {
+        "result": "PASS",
+        "blockers_failed": 0,
+        "warnings": 1
+      },
+      "inputs_hash": "319d80c2f7eb",
+      "time": "2026-10-16 21:42:22",
+      "metrics": {
+        "objects": 5,
+        "tris": 10522,
+        "dims": [
+          1.4984,
+          1.299,
+          0.16
+        ],
+        "bbox_min": [
+          -0.7492,
+          -0.6495,
+          0.0
+        ],
+        "top_tris": [
+          [
+            4672,
+            "PROJECTOR_Hub_HP"
+          ],
+          [
+            2226,
+            "BASE_Platform_HP"
+          ],
+          [
+            2112,
+            "LENSES_Projector_HP"
+          ],
+          [
+            1308,
+            "DECK_Plates_HP"
+          ],
+          [
+            204,
+            "EMISSIVE_HexStrip_HP"
+          ]
+        ],
+        "materials": [
+          "MAT_DECK_PLATE",
+          "MAT_EMISSIVE_CYAN",
+          "MAT_METAL_CHASSIS",
+          "MAT_OPTICAL_GLASS"
+        ],
+        "hygiene": {
+          "non_manifold": 0,
+          "boundary": 54,
+          "loose": 0,
+          "degenerate": 624,
+          "flipped": 0,
+          "inverted": 0,
+          "ngons": 0,
+          "quads": 4778,
+          "tris": 966,
+          "faces": 5744,
+          "ngon_ratio": 0.0
+        }
+      },
+      "checks": [
+        {
+          "id": "U01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "bbox 1.498 x 1.299 x 0.160 m vs target (1.5, 1.299, 0.16) (+-2%)"
+        },
+        {
+          "id": "U02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all scales 1.0"
+        },
+        {
+          "id": "U03",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "lowest z = 0.0000"
+        },
+        {
+          "id": "U06",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all meshes have UVs"
+        },
+        {
+          "id": "U07",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no empty material slots"
+        },
+        {
+          "id": "U08",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "10522 tris (S3 max 25000)"
+        },
+        {
+          "id": "U10",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "4 materials (max 4)"
+        },
+        {
+          "id": "U04",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 non-manifold edges ; 54 open edges"
+        },
+        {
+          "id": "U05",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "flipped 0, inverted 0 "
+        },
+        {
+          "id": "U16",
+          "severity": "WARN",
+          "result": "FAIL",
+          "detail": "624 degenerate faces/edges [(384, 'PROJECTOR_Hub_HP'), (240, 'DECK_Plates_HP')]"
+        },
+        {
+          "id": "U11",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 loose verts/edges "
+        },
+        {
+          "id": "U12",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "n-gons 0/5744 faces = 0.0% (max 5%)"
+        },
+        {
+          "id": "N01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "all names GROUP_Part_HP"
+        },
+        {
+          "id": "H01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "no subsurf on plates / boxes / extrusions"
+        },
+        {
+          "id": "X01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 critical intersections"
+        },
+        {
+          "id": "D02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "bbox change vs S2 on axes XY: 0.1% (max 1.5%)"
+        },
+        {
+          "id": "U15",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "hero glb: exported 6 objs / reimported 6; materials 4/4"
+        }
+      ]
+    },
+    "4": {
+      "stage": "GAME",
+      "summary": {
+        "result": "PASS",
+        "blockers_failed": 0,
+        "warnings": 0
+      },
+      "inputs_hash": "319d80c2f7eb",
+      "time": "2026-10-16 21:43:40",
+      "metrics": {
+        "bake": {
+          "size": 1024,
+          "device": "OPTIX",
+          "seconds_per_map": {
+            "base": 4.9,
+            "normal": 4.2,
+            "ao": 5.1,
+            "rough": 5.0,
+            "metal": 4.5
+          },
+          "extrusion_m": 0.0119,
+          "ao_distance_m": 0.1592,
+          "base_mean": [
+            0.114,
+            0.155,
+            0.166
+          ],
+          "normal_mean": [
+            0.497,
+            0.501,
+            0.935
+          ],
+          "seconds": 24.1
+        },
+        "lod_tris": {
+          "0": 2370,
+          "1": 1184,
+          "2": 584
+        },
+        "textures": {
+          "base": "output\\PROP_Weapon_Spawner_Pad\\textures\\T_PROP_Weapon_Spawner_Pad_base.png",
+          "orm": "output\\PROP_Weapon_Spawner_Pad\\textures\\T_PROP_Weapon_Spawner_Pad_orm.png",
+          "normal": "output\\PROP_Weapon_Spawner_Pad\\textures\\T_PROP_Weapon_Spawner_Pad_normal.png"
+        },
+        "glb": {
+          "0": {
+            "bytes": 1413696,
+            "nodes": 5,
+            "meshes": 4,
+            "primitives": 4,
+            "materials": 1,
+            "textures": 3,
+            "images": [
+              [
+                "T_PROP_Weapon_Spawner_Pad_normal",
+                1024,
+                1024
+              ],
+              [
+                "T_PROP_Weapon_Spawner_Pad_orm",
+                1024,
+                1024
+              ],
+              [
+                "T_PROP_Weapon_Spawner_Pad_base",
+                1024,
+                1024
+              ]
+            ],
+            "tris": 2406,
+            "animations": 0,
+            "skins": 0,
+            "node_names": null
+          },
+          "1": {
+            "bytes": 1356944,
+            "nodes": 2,
+            "meshes": 1,
+            "primitives": 1,
+            "materials": 1,
+            "textures": 3,
+            "images": [
+              [
+                "T_PROP_Weapon_Spawner_Pad_normal",
+                1024,
+                1024
+              ],
+              [
+                "T_PROP_Weapon_Spawner_Pad_orm",
+                1024,
+                1024
+              ],
+              [
+                "T_PROP_Weapon_Spawner_Pad_base",
+                1024,
+                1024
+              ]
+            ],
+            "tris": 1184,
+            "animations": 0,
+            "skins": 0,
+            "node_names": null
+          },
+          "2": {
+            "bytes": 1328064,
+            "nodes": 2,
+            "meshes": 1,
+            "primitives": 1,
+            "materials": 1,
+            "textures": 3,
+            "images": [
+              [
+                "T_PROP_Weapon_Spawner_Pad_normal",
+                1024,
+                1024
+              ],
+              [
+                "T_PROP_Weapon_Spawner_Pad_orm",
+                1024,
+                1024
+              ],
+              [
+                "T_PROP_Weapon_Spawner_Pad_base",
+                1024,
+                1024
+              ]
+            ],
+            "tris": 584,
+            "animations": 0,
+            "skins": 0,
+            "node_names": null
+          }
+        },
+        "uv_overlap": {
+          "overlap": 0.0,
+          "outside": 0.0,
+          "coverage": 0.521
+        },
+        "texel": {
+          "min": 550.5,
+          "max": 550.5,
+          "spread": 1.0
+        },
+        "hygiene": {
+          "non_manifold": 0,
+          "boundary": 30,
+          "loose": 0,
+          "degenerate": 0,
+          "flipped": 0,
+          "inverted": 0,
+          "ngons": 0,
+          "quads": 702,
+          "tris": 966,
+          "faces": 1668,
+          "ngon_ratio": 0.0
+        },
+        "objects": 1,
+        "tris": 2370,
+        "dims": [
+          1.5,
+          1.299,
+          0.16
+        ],
+        "files": {
+          "0": "output\\PROP_Weapon_Spawner_Pad\\glb\\PROP_Weapon_Spawner_Pad_LOD0.glb",
+          "1": "output\\PROP_Weapon_Spawner_Pad\\glb\\PROP_Weapon_Spawner_Pad_LOD1.glb",
+          "2": "output\\PROP_Weapon_Spawner_Pad\\glb\\PROP_Weapon_Spawner_Pad_LOD2.glb"
+        },
+        "engine": "godot"
+      },
+      "checks": [
+        {
+          "id": "G01",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "LOD tris 2370 / 1184 / 584 (targets x0.5 x0.25 +20%)"
+        },
+        {
+          "id": "G02",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "3 colliders (godot naming), faces [6, 6, 6] (max 255); missing []"
+        },
+        {
+          "id": "G03",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "textures {'base': (1024, 1024), 'orm': (1024, 1024), 'normal': (1024, 1024)} (want 1024), normal mean [0.497, 0.501, 0.935] (tangent ~0.5/0.5/1)"
+        },
+        {
+          "id": "G04",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "LOD0 glb 1.41 MB (max 3 MB)"
+        },
+        {
+          "id": "G05",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "glb: 4 meshes, 2406 tris (expect 2406), 1 materials, images [('T_PROP_Weapon_Spawner_Pad_normal', 1024, 1024), ('T_PROP_Weapon_Spawner_Pad_orm', 1024, 1024), ('T_PROP_Weapon_Spawner_Pad_base', 1024, 1024)]"
+        },
+        {
+          "id": "G06",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "3 game objects named *_LOD<n>"
+        },
+        {
+          "id": "U13",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "UVMap: overlap 0.00%, outside 0-1 0.00%, coverage 52%"
+        },
+        {
+          "id": "U14",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "texel density 550.5-550.5 px/m at 2k (spread 1.0, max 2.5)"
+        },
+        {
+          "id": "U04",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 non-manifold edges ; 30 open edges"
+        },
+        {
+          "id": "U05",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "flipped 0, inverted 0 "
+        },
+        {
+          "id": "U16",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 degenerate faces/edges "
+        },
+        {
+          "id": "U11",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "0 loose verts/edges "
+        },
+        {
+          "id": "U12",
+          "severity": "WARN",
+          "result": "PASS",
+          "detail": "n-gons 0/1668 faces = 0.0% (max 5%)"
+        },
+        {
+          "id": "U15",
+          "severity": "BLOCKER",
+          "result": "PASS",
+          "detail": "LOD0 glb: exported 5 objs / reimported 5; materials 1/1"
+        }
+      ]
+    }
+  },
+  "blender": "5.2.2 LTS",
+  "summary": {
+    "result": "PASS",
+    "stages": {
+      "1": "PASS",
+      "2": "PASS",
+      "3": "PASS",
+      "4": "PASS"
+    },
+    "blockers_failed": 0
+  },
+  "metrics": {
+    "tris_s1": 364,
+    "tris_low": 2370,
+    "tris_high": 10522,
+    "dims": [
+      1.5,
+      1.299,
+      0.16
+    ],
+    "game": {
+      "0": 2370,
+      "1": 1184,
+      "2": 584
+    }
+  },
+  "uncertain": []
+}

@@ -1,0 +1,42 @@
+{
+  "SLIDE_REAR_TOP": [
+    384.9,
+    283.0
+  ],
+  "SLIDE_FRONT_TOP": [
+    1872.6,
+    283.0
+  ],
+  "SLIDE_FRONT_BOT": [
+    1872.6,
+    583.3
+  ],
+  "SLIDE_REAR_BOT": [
+    384.9,
+    583.3
+  ],
+  "FRAME_DUST_COVER_FRONT": [
+    1546.4,
+    533.9
+  ],
+  "FRAME_TRIGGER_GUARD_BOT": [
+    1024.0,
+    1325.7
+  ],
+  "FRAME_GRIP_BOT_FRONT": [
+    510.6,
+    1325.7
+  ],
+  "HAMMER_TIP": [
+    162.7,
+    410.3
+  ],
+  "FRONT_SIGHT_TIP": [
+    1862.6,
+    262.6
+  ],
+  "REAR_SIGHT_TIP": [
+    492.8,
+    255.8
+  ]
+}

@@ -60,7 +60,7 @@ def evaluate(asset, upto=None):
             reasons.append(f"{len(failed)} blocker(s) failed")
         if sec.get("inputs_hash") != cur:
             reasons.append("STALE: landmarks/parts changed since this stage was built")
-        ms = os.path.join(paths.OUTPUT, asset, "blend", f"{asset}_{stages.milestone_tag(s)}.blend")
+        ms = paths.milestone(asset, stages.milestone_tag(s))
         if not os.path.isfile(ms):
             reasons.append("milestone missing: " + os.path.relpath(ms, paths.ROOT))
         rows.append((s, not reasons, "; ".join(reasons) or "PASS", failed))
