@@ -15,5 +15,13 @@ downloaded_resources/models/
 .claude/settings.local.json
 /AnimationWorkbench
 .AnimationWorkbench
-/GODOTTESTING
-.GODOTTESTING
+
+# Godot engine cache and testing areas
+GodotTestingArea/
+.godot/
+*.import
+
+# Intermediate / scratch binaries and scripts
+*.mixar
+check_nb.py
+

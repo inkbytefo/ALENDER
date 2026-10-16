@@ -8,8 +8,8 @@ A lesson should end as CODE or CHECK whenever possible (docs/05, workbench/).
 
 | Category | Lessons | Read when |
 |----------|---------|-----------|
-| Reference & measurement | 2 3 4 5 6 15 20 30 31 32 33 34 35 | S0, any R01/R02 failure |
-| Geometry & topology | 7 8 10 11 12 18 19 24 37 38 | S1-S3 builders |
+| Reference & measurement | 2 3 4 5 6 15 20 30 31 32 33 34 35 51 52 | S0, any R01/R02 failure |
+| Geometry & topology | 7 8 10 11 12 18 19 24 37 38 50 | S1-S3 builders |
 | Validation & process | 1 9 14 16 26 39 | always skim |
 | Rendering & presentation | 13 21 22 27 | review renders, S5 |
 | Assets, materials, game | 23 25 28 29 36 40 | PBR, imports, S4 |
@@ -255,3 +255,25 @@ export - fold part of it into the baked roughness and say so.
 - **[CODE: pipeline/export] Painted atlases triple the glb** (3 x 6 MB PNG at 2K): keep PNG masters,
   embed JPEG (`GAME image_format="JPEG"`). `materials.ensure` must skip master instances when a later
   stage re-opens the file.
+
+50. **Slanted crowns / diagonal cuts on primitives break S1 silhouettes.** A straight cylinder
+    stand-in for the 45° angled plasma saber emitter shroud left a +38 px overshoot at the tip
+    (R01/R02 FAIL). → Primitives with large angled faces cannot use a blunt bounding cylinder.
+    → *Rule: omit prim= and let the real builder run under S1 profile (ring=8..12) whenever a
+    part has prominent planar chamfers or angled lips; this guarantees zero silhouette drift (D01 iou=0.999).*
+    **[JUDGEMENT / CODE: projects/PROP_Plasma_Saber/parts.py]**
+
+51. **Open skeletal cages create hollow voids in 2D silhouette renders.** A crystal chamber
+    with 3-4 perimeter struts and a narrow inner floating core let transparent background show
+    through between the struts and the core (R01/R02 "model too small -15 px").
+    → Transparent gaps inside the outer envelope are counted as background by render.silhouette.
+    → *Rule: ensure the transparent/sapphire sleeve fills up to the inner face of perimeter
+    struts, or orient structural struts to cover silhouette extrema (e.g. 90° and 270° in side view).*
+    **[JUDGEMENT: projects/PROP_Plasma_Saber/parts.py]**
+
+52. **Inverted step directions on shaft cooling fins corrupt silhouette matching.** When defining
+    landmarks for stepped shafts with radial fins, drawing the polyline step inward instead of outward
+    creates localized 15 px boundary errors.
+    → *Rule: inspect silhouette diff columns with a 5-line numpy slice probe to locate internal
+    voids vs outer boundary discrepancies before adjusting builder geometry.*
+    **[JUDGEMENT]**
